@@ -142,21 +142,27 @@ def build() -> ids.Ids:
         ],
     ))
 
-    # --- Spec 4 — Sprinklers must declare coverage area and predefined type.
+    # --- Spec 4 — Fire-suppression terminals must declare coverage area and predefined type.
+    # NOTE: IfcSprinkler exists in IFC2X3 but was retired in IFC4 — sprinklers are
+    # modelled as IfcFireSuppressionTerminal with PredefinedType=SPRINKLER (or
+    # SPRINKLERDEFLECTOR). The spec is widened to all fire-suppression terminals so
+    # the validator reports both missing CoverageArea and NOTDEFINED PredefinedType
+    # as separate findings.
     doc.specifications.append(_spec(
         identifier="MEP-04",
-        name="Sprinkler — coverage area and predefined type",
+        name="Fire-suppression terminal — coverage area and predefined type",
         description=(
-            "Every IfcSprinkler must declare a CoverageArea on "
+            "Every IfcFireSuppressionTerminal must declare a CoverageArea on "
             "Pset_FireSuppressionTerminalSprinkler and a non-NOTDEFINED "
-            "PredefinedType."
+            "PredefinedType. IfcSprinkler from IFC2X3 was retired in IFC4 "
+            "and is now PredefinedType=SPRINKLER on IfcFireSuppressionTerminal."
         ),
         instructions=(
             "Sprinkler coverage area is required for hydraulic calculation "
-            "per BS EN 12845 §10. PredefinedType must be set so AUTOMATIC vs "
-            "MANUAL behaviour is unambiguous."
+            "per BS EN 12845 §10. PredefinedType must be set so SPRINKLER vs "
+            "FIREHYDRANT vs HOSEREEL behaviour is unambiguous."
         ),
-        entity="IFCSPRINKLER",
+        entity="IFCFIRESUPPRESSIONTERMINAL",
         requirements=[
             ids.Property(
                 propertySet="Pset_FireSuppressionTerminalSprinkler",
@@ -167,9 +173,9 @@ def build() -> ids.Ids:
             ),
             ids.Attribute(
                 name="PredefinedType",
-                value=ids.Restriction(options={"enumeration": ["BURSTINGDISC", "DRENCHER", "ELECTRICALOPERATED", "GLASSBULB", "HEATFUSIBLELINK", "HEATSOLDERLINK", "MULTIPLECONTROLS", "PNEUMATICOPERATED", "USERDEFINED"]}),
+                value=ids.Restriction(options={"enumeration": ["BREECHINGINLET", "FIREHYDRANT", "HOSEREEL", "SPRINKLER", "SPRINKLERDEFLECTOR", "USERDEFINED"]}),
                 cardinality="required",
-                instructions="Must declare sprinkler activation type per IFC4 IfcSprinklerTypeEnum.",
+                instructions="Must declare terminal type per IFC4 IfcFireSuppressionTerminalTypeEnum (no NOTDEFINED).",
             ),
         ],
     ))

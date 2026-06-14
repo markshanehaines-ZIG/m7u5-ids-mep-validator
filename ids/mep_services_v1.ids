@@ -71,29 +71,26 @@
                 </partOf>
             </requirements>
         </specification>
-        <specification name="Sprinkler — coverage area and predefined type" ifcVersion="IFC4" identifier="MEP-04" description="Every IfcSprinkler must declare a CoverageArea on Pset_FireSuppressionTerminalSprinkler and a non-NOTDEFINED PredefinedType." instructions="Sprinkler coverage area is required for hydraulic calculation per BS EN 12845 §10. PredefinedType must be set so AUTOMATIC vs MANUAL behaviour is unambiguous.">
+        <specification name="Fire-suppression terminal — coverage area and predefined type" ifcVersion="IFC4" identifier="MEP-04" description="Every IfcFireSuppressionTerminal must declare a CoverageArea on Pset_FireSuppressionTerminalSprinkler and a non-NOTDEFINED PredefinedType. IfcSprinkler from IFC2X3 was retired in IFC4 and is now PredefinedType=SPRINKLER on IfcFireSuppressionTerminal." instructions="Sprinkler coverage area is required for hydraulic calculation per BS EN 12845 §10. PredefinedType must be set so SPRINKLER vs FIREHYDRANT vs HOSEREEL behaviour is unambiguous.">
             <applicability minOccurs="0" maxOccurs="unbounded">
                 <entity>
                     <name>
-                        <simpleValue>IFCSPRINKLER</simpleValue>
+                        <simpleValue>IFCFIRESUPPRESSIONTERMINAL</simpleValue>
                     </name>
                 </entity>
             </applicability>
             <requirements>
-                <attribute cardinality="required" instructions="Must declare sprinkler activation type per IFC4 IfcSprinklerTypeEnum.">
+                <attribute cardinality="required" instructions="Must declare terminal type per IFC4 IfcFireSuppressionTerminalTypeEnum (no NOTDEFINED).">
                     <name>
                         <simpleValue>PredefinedType</simpleValue>
                     </name>
                     <value>
                         <xs:restriction base="xs:string">
-                            <xs:enumeration value="BURSTINGDISC" />
-                            <xs:enumeration value="DRENCHER" />
-                            <xs:enumeration value="ELECTRICALOPERATED" />
-                            <xs:enumeration value="GLASSBULB" />
-                            <xs:enumeration value="HEATFUSIBLELINK" />
-                            <xs:enumeration value="HEATSOLDERLINK" />
-                            <xs:enumeration value="MULTIPLECONTROLS" />
-                            <xs:enumeration value="PNEUMATICOPERATED" />
+                            <xs:enumeration value="BREECHINGINLET" />
+                            <xs:enumeration value="FIREHYDRANT" />
+                            <xs:enumeration value="HOSEREEL" />
+                            <xs:enumeration value="SPRINKLER" />
+                            <xs:enumeration value="SPRINKLERDEFLECTOR" />
                             <xs:enumeration value="USERDEFINED" />
                         </xs:restriction>
                     </value>

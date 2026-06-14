@@ -36,18 +36,44 @@ cd m7u5-ids-mep-validator
 python -m venv venv && source venv/Scripts/activate
 pip install -r requirements.txt
 cp .env.template .env   # then add your ANTHROPIC_API_KEY in your editor
-# Download Trapelo and Hospital IFCs into ifc/ (links below)
-python -m src.cli --ifc ifc/Trapelo_IFC4_MEP.ifc --ids ids/mep_services_v1.ids --out results/
+# Download the two IFC test models into ifc/ (commands below)
+python -m src.cli --ifc ifc/Ifc4_Revit_MEP.ifc --ids ids/mep_services_v1.ids --out results/
 ```
 
 ### IFC test models
 
+The originally targeted Auckland Open IFC Model Repository models
+(`Trapelo_IFC4_MEP.ifc`, `Hospital_IFC4_SPR.ifc`) require an interactive
+browser login that we cannot reliably automate, so the build uses two
+public, no-login replacements with comparable MEP coverage:
+
 | File | Schema | Size | Source |
 |---|---|---|---|
-| `Trapelo_IFC4_MEP.ifc` | IFC4 | 67.8 MB | http://openifcmodel.cs.auckland.ac.nz/Model/Details/303 |
-| `Hospital_IFC4_SPR.ifc` | IFC4 | 34 MB | http://openifcmodel.cs.auckland.ac.nz/Model/Details/308 |
+| `Ifc4_Revit_MEP.ifc` | IFC4 | 27.8 MB | `youshengCode/IfcSampleFiles` — IFC4 export of the Autodesk Revit MEP Advanced Sample Project |
+| `BoilerGasRadiatorDomesticHotWater.ifc` | IFC4 | 1.35 MB | `EnEff-BIM/EnEffBIM_UseCases` (MIT) — VDI 6020 boiler / gas radiator / DHW reference model |
 
-Both are excluded from git via `.gitignore` (file size).
+Fetch both with:
+
+```bash
+curl -sL -o ifc/Ifc4_Revit_MEP.ifc \
+  https://raw.githubusercontent.com/youshengCode/IfcSampleFiles/main/Ifc4_Revit_MEP.ifc
+curl -sL -o ifc/BoilerGasRadiatorDomesticHotWater.ifc \
+  "https://raw.githubusercontent.com/EnEff-BIM/EnEffBIM_UseCases/master/BIM/1.2%20BoilerGasRadiatorDomesticHotWater_VDI%206020/IFC/1.2%20BoilerGasRadiatorDomesticHotWater.ifc"
+```
+
+Both files are excluded from git via `.gitignore` (size policy).
+
+**Attribution — Ifc4_Revit_MEP.ifc:** the underlying model is the publicly
+distributed Autodesk Revit MEP Advanced Sample Project
+(`rme_advanced_sample_project`), © Autodesk Inc., used here for
+non-commercial academic evaluation under Autodesk's sample-content terms.
+The IFC4 export is hosted by `youshengCode/IfcSampleFiles` on GitHub.
+
+**Schema note — MEP-04 (Sprinkler):** `IfcSprinkler` exists in IFC2X3
+but was retired in IFC4. Sprinklers are now modelled as
+`IfcFireSuppressionTerminal` with `PredefinedType=SPRINKLER`. Spec MEP-04
+in `ids/mep_services_v1.ids` was authored against the IFC4 form. This is
+discussed in `docs/technical_report.md`.
 
 ---
 
