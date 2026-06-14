@@ -20,10 +20,17 @@ ifc/*.ifc
 ifc/*.ifcxml
 ifc/*.ifczip
 
-# Generated reports
-results/
+# Generated reports — the validator regenerates these every run.
+# Pattern is results/* (not results/) so negations can re-include files.
+results/*
 *.bcf
 *.html.bak
+
+# LLM demo outputs are committed as evidence (they cost API credits to
+# regenerate). Negation patterns must come after the broader ignore.
+!results/eir_translation_three_clauses.ids
+!results/generated_demo.ids
+!results/Ifc4_Revit_MEP_remediated.json
 
 # OS / IDE
 .DS_Store

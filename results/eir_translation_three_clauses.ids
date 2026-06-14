@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ids xmlns="http://standards.buildingsmart.org/IDS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+    <info>
+        <title>LLM-generated MEP requirements</title>
+        <description>Generated from 3 EIR clauses; 3 survived XSD validation.</description>
+        <author>markshanehaines@gmail.com</author>
+        <date>2026-06-14</date>
+        <purpose>LLM-generated IDS specifications from EIR clauses (M7U5).</purpose>
+    </info>
+    <specifications>
+<specification name="AHU Nominal Air Flow Rate" ifcVersion="IFC4" identifier="GEN-02" description="Every air-handling unit must declare its supply-air design flow rate via Pset_AirHandlingUnitTypeCommon.NominalAirFlowRate to enable commissioning verification against the room-by-room load schedule." instructions="Populate NominalAirFlowRate in Pset_AirHandlingUnitTypeCommon for all AHU instances. Value must reflect the design supply-air flow rate in cubic metres per second as agreed in the load schedule.">
+    <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCAIRHANDLINGUNIT</simpleValue></name></entity>
+    </applicability>
+    <requirements>
+        <property dataType="IFCVOLUMETRICFLOWRATEMEASURE" cardinality="required">
+            <propertySet><simpleValue>Pset_AirHandlingUnitTypeCommon</simpleValue></propertySet>
+            <baseName><simpleValue>NominalAirFlowRate</simpleValue></baseName>
+        </property>
+    </requirements>
+</specification>
+<specification name="Domestic Hot Water Tank – Capacity and System Assignment" ifcVersion="IFC4" identifier="GEN-07" description="Every domestic hot water tank must declare its nominal capacity in litres via Pset_TankTypeCommon.NominalCapacity and must be assigned to an IfcDistributionSystem of predefined type DOMESTICHOTWATER." instructions="Ensure each IfcTank representing a domestic hot water storage vessel carries NominalCapacity in Pset_TankTypeCommon expressed in litres, and that the tank participates in a DOMESTICHOTWATER distribution system via IfcRelAssignsToGroup or IfcRelReferencedInSpatialStructure as appropriate.">
+    <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCTANK</simpleValue></name></entity>
+    </applicability>
+    <requirements>
+        <property dataType="IFCVOLUMEMEASURE" cardinality="required">
+            <propertySet><simpleValue>Pset_TankTypeCommon</simpleValue></propertySet>
+            <baseName><simpleValue>NominalCapacity</simpleValue></baseName>
+        </property>
+        <partOf cardinality="required">
+            <entity>
+                <name><simpleValue>IFCDISTRIBUTIONSYSTEM</simpleValue></name>
+                <predefinedType><simpleValue>DOMESTICHOTWATER</simpleValue></predefinedType>
+            </entity>
+        </partOf>
+    </requirements>
+</specification>
+<specification name="Chiller nominal cooling capacity" ifcVersion="IFC4" identifier="GEN-01" description="Every chiller must declare its nominal cooling capacity in watts via Pset_ChillerTypeCommon.NominalCapacity." instructions="Required for energy modelling. Ensure NominalCapacity is populated in watts (IFCPOWERMEASURE) on all chiller objects before model submission.">
+    <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCCHILLER</simpleValue></name></entity>
+    </applicability>
+    <requirements>
+        <property dataType="IFCPOWERMEASURE" cardinality="required">
+            <propertySet><simpleValue>Pset_ChillerTypeCommon</simpleValue></propertySet>
+            <baseName><simpleValue>NominalCapacity</simpleValue></baseName>
+        </property>
+    </requirements>
+</specification>
+    </specifications>
+</ids>
