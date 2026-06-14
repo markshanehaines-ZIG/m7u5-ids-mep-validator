@@ -1,0 +1,13 @@
+# One natural-language Employer's Information Requirements (EIR) clause per
+# block. Blank lines separate clauses; lines starting with # are comments.
+
+All air-handling units shall declare the supply-air design flow rate via
+Pset_AirHandlingUnitTypeCommon.NominalAirFlowRate so the commissioning
+team can verify against the room-by-room load schedule.
+
+Every domestic-hot-water tank shall publish its capacity in litres on
+Pset_TankTypeCommon.NominalCapacity and shall be assigned to an
+IfcDistributionSystem of predefined type DOMESTICHOTWATER.
+
+All chillers shall declare nominal cooling capacity in watts on
+Pset_ChillerTypeCommon.NominalCapacity for the energy modelling team.
