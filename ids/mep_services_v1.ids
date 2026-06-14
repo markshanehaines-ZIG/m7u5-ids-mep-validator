@@ -1,0 +1,247 @@
+<ids xmlns="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+    <info>
+        <title>MEP Services Information Delivery Specification v1</title>
+        <copyright>Mark Shane Haines, 2026</copyright>
+        <version>1.0.0</version>
+        <description>Hand-authored IDS ruleset covering nine common MEP services information requirements (pipe, duct, distribution port, flow terminal, sprinkler, pump, valve, cable segment, electric appliance). Authored for M7U5, Zigurat Masters in AI in Architecture and Construction.</description>
+        <author>markshanehaines@gmail.com</author>
+        <date>2026-06-14</date>
+        <purpose>Demonstrate IDS-driven openBIM validation for MEP services models.</purpose>
+        <milestone>Design — Coordination</milestone>
+    </info>
+    <specifications>
+        <specification name="Pipe segment — diameter and material" ifcVersion="IFC4" identifier="MEP-01" description="Every IfcPipeSegment instance must declare a nominal diameter via Pset_PipeSegmentTypeCommon and have an associated material." instructions="Pipe nominal diameter is mandatory for hydraulic sizing, valve selection and pipe-support spacing. Material is required for pressure-rating verification (IFC4).">
+            <applicability minOccurs="0" maxOccurs="unbounded">
+                <entity>
+                    <name>
+                        <simpleValue>IFCPIPESEGMENT</simpleValue>
+                    </name>
+                </entity>
+            </applicability>
+            <requirements>
+                <property dataType="IFCPOSITIVELENGTHMEASURE" cardinality="required" instructions="Used downstream for hydraulic sizing and support spacing.">
+                    <propertySet>
+                        <simpleValue>Pset_PipeSegmentTypeCommon</simpleValue>
+                    </propertySet>
+                    <baseName>
+                        <simpleValue>NominalDiameter</simpleValue>
+                    </baseName>
+                </property>
+                <material cardinality="required" instructions="A pipe material must be associated so pressure rating can be verified." />
+            </requirements>
+        </specification>
+        <specification name="Distribution port — flow direction declared" ifcVersion="IFC4" identifier="MEP-02" description="Every IfcDistributionPort must declare a FlowDirection attribute of SOURCE, SINK or SOURCEANDSINK. A NOTDEFINED or null FlowDirection breaks downstream system tracing." instructions="FlowDirection drives system tracing, pump-sizing and clash logic. Per IFC4 IfcFlowDirectionEnum (BS EN ISO 16739-1:2020).">
+            <applicability minOccurs="0" maxOccurs="unbounded">
+                <entity>
+                    <name>
+                        <simpleValue>IFCDISTRIBUTIONPORT</simpleValue>
+                    </name>
+                </entity>
+            </applicability>
+            <requirements>
+                <attribute cardinality="required" instructions="Must be one of SOURCE, SINK, SOURCEANDSINK (not NOTDEFINED or null).">
+                    <name>
+                        <simpleValue>FlowDirection</simpleValue>
+                    </name>
+                    <value>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="SOURCE" />
+                            <xs:enumeration value="SINK" />
+                            <xs:enumeration value="SOURCEANDSINK" />
+                        </xs:restriction>
+                    </value>
+                </attribute>
+            </requirements>
+        </specification>
+        <specification name="Flow terminal — distribution system membership" ifcVersion="IFC4" identifier="MEP-03" description="Every IfcFlowTerminal instance must be assigned to an IfcDistributionSystem group so the system it belongs to can be queried downstream." instructions="Without IfcDistributionSystem grouping, downstream tools cannot filter terminals by service (HWS, CWS, supply air, etc.).">
+            <applicability minOccurs="0" maxOccurs="unbounded">
+                <entity>
+                    <name>
+                        <simpleValue>IFCFLOWTERMINAL</simpleValue>
+                    </name>
+                </entity>
+            </applicability>
+            <requirements>
+                <partOf relation="IFCRELASSIGNSTOGROUP" cardinality="required" instructions="Must be a member of an IfcDistributionSystem via IfcRelAssignsToGroup.">
+                    <entity>
+                        <name>
+                            <simpleValue>IFCDISTRIBUTIONSYSTEM</simpleValue>
+                        </name>
+                    </entity>
+                </partOf>
+            </requirements>
+        </specification>
+        <specification name="Sprinkler — coverage area and predefined type" ifcVersion="IFC4" identifier="MEP-04" description="Every IfcSprinkler must declare a CoverageArea on Pset_FireSuppressionTerminalSprinkler and a non-NOTDEFINED PredefinedType." instructions="Sprinkler coverage area is required for hydraulic calculation per BS EN 12845 §10. PredefinedType must be set so AUTOMATIC vs MANUAL behaviour is unambiguous.">
+            <applicability minOccurs="0" maxOccurs="unbounded">
+                <entity>
+                    <name>
+                        <simpleValue>IFCSPRINKLER</simpleValue>
+                    </name>
+                </entity>
+            </applicability>
+            <requirements>
+                <attribute cardinality="required" instructions="Must declare sprinkler activation type per IFC4 IfcSprinklerTypeEnum.">
+                    <name>
+                        <simpleValue>PredefinedType</simpleValue>
+                    </name>
+                    <value>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="BURSTINGDISC" />
+                            <xs:enumeration value="DRENCHER" />
+                            <xs:enumeration value="ELECTRICALOPERATED" />
+                            <xs:enumeration value="GLASSBULB" />
+                            <xs:enumeration value="HEATFUSIBLELINK" />
+                            <xs:enumeration value="HEATSOLDERLINK" />
+                            <xs:enumeration value="MULTIPLECONTROLS" />
+                            <xs:enumeration value="PNEUMATICOPERATED" />
+                            <xs:enumeration value="USERDEFINED" />
+                        </xs:restriction>
+                    </value>
+                </attribute>
+                <property dataType="IFCAREAMEASURE" cardinality="required" instructions="Required for hydraulic sizing per BS EN 12845.">
+                    <propertySet>
+                        <simpleValue>Pset_FireSuppressionTerminalSprinkler</simpleValue>
+                    </propertySet>
+                    <baseName>
+                        <simpleValue>CoverageArea</simpleValue>
+                    </baseName>
+                </property>
+            </requirements>
+        </specification>
+        <specification name="Pump — manufacturer and model identification" ifcVersion="IFC4" identifier="MEP-05" description="Every IfcPump must declare Manufacturer and ModelLabel via Pset_ManufacturerTypeInformation so procurement and O&amp;M can trace the selected unit." instructions="Required for FM/CAFM hand-over, O&amp;M manuals and spare-parts procurement. Pset_ManufacturerTypeInformation is defined in IFC4 for any IfcElementType.">
+            <applicability minOccurs="0" maxOccurs="unbounded">
+                <entity>
+                    <name>
+                        <simpleValue>IFCPUMP</simpleValue>
+                    </name>
+                </entity>
+            </applicability>
+            <requirements>
+                <property dataType="IFCLABEL" cardinality="required" instructions="Manufacturer name required for procurement and O&amp;M.">
+                    <propertySet>
+                        <simpleValue>Pset_ManufacturerTypeInformation</simpleValue>
+                    </propertySet>
+                    <baseName>
+                        <simpleValue>Manufacturer</simpleValue>
+                    </baseName>
+                </property>
+                <property dataType="IFCLABEL" cardinality="required" instructions="Model label required so the selected unit is unambiguously identified.">
+                    <propertySet>
+                        <simpleValue>Pset_ManufacturerTypeInformation</simpleValue>
+                    </propertySet>
+                    <baseName>
+                        <simpleValue>ModelLabel</simpleValue>
+                    </baseName>
+                </property>
+            </requirements>
+        </specification>
+        <specification name="Duct segment — nominal size and material" ifcVersion="IFC4" identifier="MEP-06" description="Every IfcDuctSegment must declare NominalLengthOrDimension on Pset_DuctSegmentTypeCommon and have a material assigned." instructions="Nominal size drives airflow capacity calculations and ductwork support spacing. Material is required for fire-resistance and acoustic rating verification.">
+            <applicability minOccurs="0" maxOccurs="unbounded">
+                <entity>
+                    <name>
+                        <simpleValue>IFCDUCTSEGMENT</simpleValue>
+                    </name>
+                </entity>
+            </applicability>
+            <requirements>
+                <property dataType="IFCPOSITIVELENGTHMEASURE" cardinality="required" instructions="Nominal length-or-dimension is required for sizing and support spacing.">
+                    <propertySet>
+                        <simpleValue>Pset_DuctSegmentTypeCommon</simpleValue>
+                    </propertySet>
+                    <baseName>
+                        <simpleValue>NominalLengthOrDimension</simpleValue>
+                    </baseName>
+                </property>
+                <material cardinality="required" instructions="Duct material required for fire and acoustic rating." />
+            </requirements>
+        </specification>
+        <specification name="Valve — operation type and predefined type" ifcVersion="IFC4" identifier="MEP-07" description="Every IfcValve must declare ValveOperation on Pset_ValveTypeCommon and a non-NOTDEFINED PredefinedType." instructions="ValveOperation (DROP/FLOATING/LIFTING/etc.) is needed by commissioning. PredefinedType (BALL/GATE/CHECK/...) is needed by schedule generation and clash logic.">
+            <applicability minOccurs="0" maxOccurs="unbounded">
+                <entity>
+                    <name>
+                        <simpleValue>IFCVALVE</simpleValue>
+                    </name>
+                </entity>
+            </applicability>
+            <requirements>
+                <attribute cardinality="required" instructions="Must declare valve type per IFC4 IfcValveTypeEnum.">
+                    <name>
+                        <simpleValue>PredefinedType</simpleValue>
+                    </name>
+                    <value>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="AIRRELEASE" />
+                            <xs:enumeration value="ANTIVACUUM" />
+                            <xs:enumeration value="CHANGEOVER" />
+                            <xs:enumeration value="CHECK" />
+                            <xs:enumeration value="COMMISSIONING" />
+                            <xs:enumeration value="DIVERTING" />
+                            <xs:enumeration value="DRAWOFFCOCK" />
+                            <xs:enumeration value="DOUBLECHECK" />
+                            <xs:enumeration value="DOUBLEREGULATING" />
+                            <xs:enumeration value="FAUCET" />
+                            <xs:enumeration value="FLUSHING" />
+                            <xs:enumeration value="GASCOCK" />
+                            <xs:enumeration value="GASTAP" />
+                            <xs:enumeration value="ISOLATING" />
+                            <xs:enumeration value="MIXING" />
+                            <xs:enumeration value="PRESSUREREDUCING" />
+                            <xs:enumeration value="PRESSURERELIEF" />
+                            <xs:enumeration value="REGULATING" />
+                            <xs:enumeration value="SAFETYCUTOFF" />
+                            <xs:enumeration value="STEAMTRAP" />
+                            <xs:enumeration value="STOPCOCK" />
+                            <xs:enumeration value="USERDEFINED" />
+                        </xs:restriction>
+                    </value>
+                </attribute>
+                <property dataType="IFCLABEL" cardinality="required" instructions="Valve operation required for commissioning schedule.">
+                    <propertySet>
+                        <simpleValue>Pset_ValveTypeCommon</simpleValue>
+                    </propertySet>
+                    <baseName>
+                        <simpleValue>ValveOperation</simpleValue>
+                    </baseName>
+                </property>
+            </requirements>
+        </specification>
+        <specification name="Cable segment — cross-sectional area declared" ifcVersion="IFC4" identifier="MEP-08" description="Every IfcCableSegment must declare CrossSectionalArea on Pset_CableSegmentTypeCommon." instructions="Cable cross-sectional area is mandatory under BS 7671 §433 for verifying current-carrying capacity and voltage drop.">
+            <applicability minOccurs="0" maxOccurs="unbounded">
+                <entity>
+                    <name>
+                        <simpleValue>IFCCABLESEGMENT</simpleValue>
+                    </name>
+                </entity>
+            </applicability>
+            <requirements>
+                <property dataType="IFCAREAMEASURE" cardinality="required" instructions="Required by BS 7671 §433 for current-carrying capacity verification.">
+                    <propertySet>
+                        <simpleValue>Pset_CableSegmentTypeCommon</simpleValue>
+                    </propertySet>
+                    <baseName>
+                        <simpleValue>CrossSectionalArea</simpleValue>
+                    </baseName>
+                </property>
+            </requirements>
+        </specification>
+        <specification name="Electric appliance — nominal power declared" ifcVersion="IFC4" identifier="MEP-09" description="Every IfcElectricAppliance must declare NominalPower on Pset_ElectricalDeviceCommon." instructions="Nominal power is required for circuit sizing, distribution board scheduling and load-balance reports under BS 7671.">
+            <applicability minOccurs="0" maxOccurs="unbounded">
+                <entity>
+                    <name>
+                        <simpleValue>IFCELECTRICAPPLIANCE</simpleValue>
+                    </name>
+                </entity>
+            </applicability>
+            <requirements>
+                <property dataType="IFCPOWERMEASURE" cardinality="required" instructions="Required for circuit sizing per BS 7671 §433.">
+                    <propertySet>
+                        <simpleValue>Pset_ElectricalDeviceCommon</simpleValue>
+                    </propertySet>
+                    <baseName>
+                        <simpleValue>NominalPower</simpleValue>
+                    </baseName>
+                </property>
+            </requirements>
+        </specification>
+    </specifications>
+</ids>
