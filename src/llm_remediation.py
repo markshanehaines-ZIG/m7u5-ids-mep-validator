@@ -133,7 +133,9 @@ def _call_claude(client: "anthropic.Anthropic", model: str, items: list[FailureI
 def annotate(report_path: Path, *, limit: int | None = None, model: str | None = None) -> dict[str, Any]:
     import anthropic
 
-    load_dotenv()
+    # override=True so a stale/empty ANTHROPIC_API_KEY in the parent shell
+    # does not mask the value the user wrote into .env.
+    load_dotenv(override=True)
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise RuntimeError(

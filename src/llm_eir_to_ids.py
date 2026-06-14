@@ -143,7 +143,9 @@ def _call_claude(client: "anthropic.Anthropic", model: str, clause: str) -> str:
 def translate_clauses(clauses: Iterable[str], *, model: str | None = None) -> list[GeneratedSpec]:
     import anthropic  # imported lazily so the validator/CLI can be used offline
 
-    load_dotenv()
+    # override=True so a stale/empty ANTHROPIC_API_KEY in the parent shell
+    # does not mask the value the user wrote into .env.
+    load_dotenv(override=True)
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise RuntimeError(
