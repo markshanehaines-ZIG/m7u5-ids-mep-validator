@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>M7U5 — IDS-Driven MEP Validator with LLM-Authored Specifications</title><style>
+@page { size: A4; margin: 14mm 16mm 14mm 16mm; }
+html, body {
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    color: #111;
+    font-size: 9.8pt;
+    line-height: 1.32;
+}
+h1 { font-size: 16pt; margin: 0 0 4pt 0; }
+h2 { font-size: 11.5pt; margin: 10pt 0 4pt 0; border-bottom: 0.6pt solid #555; padding-bottom: 1pt; }
+h3 { font-size: 10pt; margin: 8pt 0 3pt 0; }
+p  { margin: 0 0 5pt 0; text-align: justify; hyphens: auto; }
+ul, ol { margin: 0 0 5pt 16pt; }
+li { margin-bottom: 2pt; }
+table { border-collapse: collapse; width: 100%; font-size: 8.6pt; margin: 4pt 0 6pt 0; }
+th, td { border: 0.4pt solid #888; padding: 2pt 4pt; text-align: left; }
+th { background: #eef2f7; }
+code, pre {
+    font-family: "JetBrains Mono", "Consolas", Menlo, monospace;
+    font-size: 8.6pt;
+    background: #f4f4f4;
+    border-radius: 2pt;
+    padding: 0 2pt;
+}
+pre { padding: 4pt 6pt; }
+svg, img { max-width: 100%; height: auto; }
+.subtitle { color: #555; font-size: 10pt; margin-top: -2pt; margin-bottom: 6pt; }
+</style></head>
+<body><h1>M7U5 — IDS-Driven MEP Validator with LLM-Authored Specifications</h1><div class="subtitle">Masters in AI in Architecture and Construction · Zigurat Global Institute of Technology</div><div class="subtitle">Mark Shane Haines &middot; June 2026</div><h2>1 — Automation logic</h2>
+<p>Elias Magalhães's slides 18–24 frame the assignment around an explicit
+sequence: <strong>EIR → BEP → IDS → automated rule check</strong>. The slide deck
+suggests Revit + pyRevit as the implementation surface, but the same
+slides identify the <strong>Information Delivery Specification (IDS)</strong> as the
+machine-readable contract that closes the gap between a written
+requirement and an automated check. The implementation here follows the
+deeper argument rather than the suggested toolchain: it targets the
+<strong>openBIM stack</strong> (<code>ifcopenshell</code> + <code>ifctester</code>, the buildingSMART
+reference implementation that ships the IDS 1.0 XSD inside the package)
+and treats the IDS file as the first-class artefact. Revit is replaced
+by an authoring-tool-agnostic IFC4 input, and pyRevit is replaced by
+ifctester's <code>Json/Html/Bcf</code> reporters. The IDS rules are exactly the
+ones a real Services BIM Consultant would expect to negotiate at BEP
+stage: pipe diameter, distribution-port flow direction, sprinkler
+coverage area, pump manufacturer data, valve operation, electrical
+cross-sectional area, and so on (nine specifications in total, listed
+in <code>ids/mep_services_v1.ids</code>).</p>
+<p>Two LLM extensions sit beside the core pipeline. The first
+(<code>src/llm_eir_to_ids.py</code>) turns a natural-language EIR clause into one
+syntactically valid IDS specification using Claude (Sonnet 4.6) and
+validates the model's output against the bundled IDS XSD via <code>lxml</code>
+before any disk write — so malformed XML cannot reach the ruleset. The
+second (<code>src/llm_remediation.py</code>) reads the JSON validation report,
+batches non-conformances into Claude requests, and writes a
+one-paragraph plain-English remediation note into the report's
+<code>failed_entities</code> array. Both extensions are guarded by <code>python-dotenv</code>
+key loading and fail loudly if <code>ANTHROPIC_API_KEY</code> is absent.</p>
+<h2>2 — Implementation</h2>
+<p><div class="svg-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 560" font-family="Inter, 'Segoe UI', Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f2937"/>
+    </marker>
+    <style>
+      .node { stroke: #1f2937; stroke-width: 1.5; }
+      .label { font-size: 14px; fill: #111827; }
+      .small { font-size: 11px; fill: #4b5563; }
+      .title { font-size: 18px; font-weight: 600; fill: #111827; }
+      .group { fill: #f9fafb; stroke: #d1d5db; stroke-dasharray: 5 4; }
+      .ifc { fill: #e0f2fe; }
+      .ids { fill: #fef3c7; }
+      .core { fill: #dcfce7; }
+      .report { fill: #f3e8ff; }
+      .llm { fill: #fee2e2; }
+      .line { stroke: #1f2937; stroke-width: 1.5; fill: none; }
+    </style>
+  </defs>
+
+  <text class="title" x="20" y="32">M7U5 — IDS-driven MEP Validator: system architecture</text>
+
+  <!-- Group: Inputs -->
+  <rect class="group" x="20" y="60" width="200" height="320" rx="10"/>
+  <text class="small" x="32" y="80">Inputs</text>
+
+  <rect class="node ifc" x="40" y="100" width="160" height="60" rx="8"/>
+  <text class="label" x="60" y="125">IFC4 model</text>
+  <text class="small" x="60" y="142">.ifc file (binary)</text>
+
+  <rect class="node ids" x="40" y="180" width="160" height="60" rx="8"/>
+  <text class="label" x="60" y="205">IDS ruleset</text>
+  <text class="small" x="60" y="222">mep_services_v1.ids</text>
+
+  <rect class="node llm" x="40" y="260" width="160" height="100" rx="8"/>
+  <text class="label" x="60" y="285">EIR clauses (NL)</text>
+  <text class="small" x="60" y="302">queries/sample_eir_</text>
+  <text class="small" x="60" y="316">clauses.txt</text>
+  <text class="small" x="60" y="338">"All sprinklers shall ..."</text>
+
+  <!-- Group: Core pipeline -->
+  <rect class="group" x="260" y="60" width="380" height="430" rx="10"/>
+  <text class="small" x="272" y="80">Core pipeline (src/)</text>
+
+  <rect class="node core" x="280" y="100" width="160" height="60" rx="8"/>
+  <text class="label" x="300" y="125">ifcopenshell</text>
+  <text class="small" x="300" y="142">model = open(.ifc)</text>
+
+  <rect class="node core" x="460" y="100" width="160" height="60" rx="8"/>
+  <text class="label" x="480" y="125">ifctester.ids</text>
+  <text class="small" x="480" y="142">doc = open(.ids)</text>
+
+  <rect class="node core" x="280" y="200" width="340" height="70" rx="8"/>
+  <text class="label" x="300" y="225">src/validator.py — Validator.run()</text>
+  <text class="small" x="300" y="244">doc.validate(model)  -&gt;  ValidationRun</text>
+  <text class="small" x="300" y="258">timing, per-spec applicable / pass / fail</text>
+
+  <rect class="node llm" x="280" y="290" width="340" height="70" rx="8"/>
+  <text class="label" x="300" y="315">src/llm_eir_to_ids.py</text>
+  <text class="small" x="300" y="334">Claude (sonnet-4-6) -&gt; IDS spec XML</text>
+  <text class="small" x="300" y="348">XSD-validated, merged or saved as new .ids</text>
+
+  <rect class="node llm" x="280" y="380" width="340" height="70" rx="8"/>
+  <text class="label" x="300" y="405">src/llm_remediation.py</text>
+  <text class="small" x="300" y="424">per-failure plain-English advice</text>
+  <text class="small" x="300" y="438">batched, written back into JSON report</text>
+
+  <rect class="node core" x="280" y="470" width="340" height="50" rx="8"/>
+  <text class="label" x="300" y="498">src/reporter.py — multi-format export</text>
+
+  <!-- Group: Outputs -->
+  <rect class="group" x="680" y="60" width="220" height="430" rx="10"/>
+  <text class="small" x="692" y="80">Outputs (results/)</text>
+
+  <rect class="node report" x="700" y="100" width="180" height="50" rx="8"/>
+  <text class="label" x="720" y="128">JSON report</text>
+
+  <rect class="node report" x="700" y="170" width="180" height="50" rx="8"/>
+  <text class="label" x="720" y="198">HTML report</text>
+
+  <rect class="node report" x="700" y="240" width="180" height="50" rx="8"/>
+  <text class="label" x="720" y="268">BCF (issue tracker)</text>
+
+  <rect class="node report" x="700" y="310" width="180" height="50" rx="8"/>
+  <text class="label" x="720" y="338">summary.csv</text>
+
+  <rect class="node report" x="700" y="380" width="180" height="50" rx="8"/>
+  <text class="label" x="720" y="408">failures.csv</text>
+
+  <rect class="node llm" x="700" y="450" width="180" height="50" rx="8"/>
+  <text class="label" x="720" y="478">annotated JSON</text>
+
+  <!-- Lines -->
+  <path class="line" d="M200 130 L280 130" marker-end="url(#arrow)"/>
+  <path class="line" d="M200 210 L460 130" marker-end="url(#arrow)"/>
+  <path class="line" d="M200 310 L280 325" marker-end="url(#arrow)"/>
+
+  <path class="line" d="M360 160 L360 200" marker-end="url(#arrow)"/>
+  <path class="line" d="M540 160 L540 200" marker-end="url(#arrow)"/>
+
+  <path class="line" d="M450 270 L450 470" marker-end="url(#arrow)"/>
+  <path class="line" d="M620 235 L700 125" marker-end="url(#arrow)"/>
+  <path class="line" d="M620 235 L700 195" marker-end="url(#arrow)"/>
+  <path class="line" d="M620 495 L700 265" marker-end="url(#arrow)"/>
+  <path class="line" d="M620 495 L700 335" marker-end="url(#arrow)"/>
+  <path class="line" d="M620 495 L700 405" marker-end="url(#arrow)"/>
+  <path class="line" d="M620 415 L700 475" marker-end="url(#arrow)"/>
+
+  <!-- LLM loop back into IDS -->
+  <path class="line" d="M280 325 Q 230 325 230 240 L 200 240" marker-end="url(#arrow)" stroke-dasharray="5 4"/>
+  <text class="small" x="120" y="252">amend IDS</text>
+
+  <!-- Legend -->
+  <g transform="translate(20,440)">
+    <text class="small" x="0" y="0">Legend</text>
+    <rect class="node ifc" x="0" y="10" width="14" height="14"/><text class="small" x="22" y="22">IFC inputs</text>
+    <rect class="node ids" x="90" y="10" width="14" height="14"/><text class="small" x="112" y="22">IDS rulesets</text>
+    <rect class="node core" x="190" y="10" width="14" height="14"/><text class="small" x="212" y="22">openBIM core</text>
+    <rect class="node llm" x="0" y="34" width="14" height="14"/><text class="small" x="22" y="46">LLM modules</text>
+    <rect class="node report" x="100" y="34" width="14" height="14"/><text class="small" x="122" y="46">Report outputs</text>
+  </g>
+</svg>
+</div></p>
+<p>The codebase is small (≈ 800 LOC of Python, 0 LOC of Revit-specific
+code) and built around three layers:</p>
+<ul>
+<li><strong>Loader / validator</strong> (<code>src/validator.py</code>) — wraps
+  <code>ifcopenshell.open</code> and <code>ifctester.ids.Ids.validate</code>, times each
+  step, and exposes a <code>ValidationRun</code> dataclass so the CLI, the demo
+  notebook, and the test suite all consume the same structure.</li>
+<li><strong>Reporter</strong> (<code>src/reporter.py</code>) — re-uses the four built-in
+  ifctester reporters (<code>Json</code>, <code>Html</code>, <code>Bcf</code>, <code>Console</code>) and adds two
+  MEP-targeted CSV summaries. A subtle bug in ifctester 0.8.5 is
+  worked around here: <code>Bcf.to_file</code> reads <code>self.results</code>, which is
+  only populated by <code>.report()</code>, so the wrapper calls <code>.report()</code>
+  explicitly before each <code>.to_file()</code>. The same is true of
+  <code>Json.to_file</code> and <code>Html.to_file</code>.</li>
+<li><strong>CLI</strong> (<code>src/cli.py</code>) — <code>python -m src.cli --ifc … --ids … --out …</code>
+  with an exit code mirroring validation status so CI can gate on it.</li>
+</ul>
+<p>The IDS ruleset itself is built by <code>scripts/build_mep_ids.py</code>, which
+constructs every specification via the <code>ifctester.ids</code> constructors.
+The result is therefore guaranteed XSD-valid by construction; a
+secondary <code>lxml</code> validation against the bundled XSD is performed after
+the file is written.</p>
+<p><div class="svg-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 460" font-family="Inter, 'Segoe UI', Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f2937"/>
+    </marker>
+    <style>
+      .stage { stroke: #1f2937; stroke-width: 1.5; fill: #ffffff; }
+      .label { font-size: 15px; font-weight: 600; fill: #111827; }
+      .small { font-size: 11px; fill: #4b5563; }
+      .title { font-size: 18px; font-weight: 600; fill: #111827; }
+      .number { font-size: 12px; font-weight: 700; fill: #6b7280; }
+      .line { stroke: #1f2937; stroke-width: 2; fill: none; }
+      .loop  { stroke: #b91c1c; stroke-width: 1.5; stroke-dasharray: 6 4; fill: none; }
+      .loop-label { font-size: 11px; fill: #b91c1c; }
+    </style>
+  </defs>
+
+  <text class="title" x="20" y="32">M7U5 — IDS validation pipeline with LLM extension</text>
+
+  <!-- Stage 1 -->
+  <rect class="stage" x="30"  y="80" width="180" height="120" rx="10" fill="#e0f2fe"/>
+  <text class="number" x="42"  y="100">STAGE 1</text>
+  <text class="label"  x="42"  y="120">Load inputs</text>
+  <text class="small"  x="42"  y="142">ifcopenshell.open(.ifc)</text>
+  <text class="small"  x="42"  y="158">ifctester.ids.open(.ids)</text>
+  <text class="small"  x="42"  y="180">XSD round-trip check</text>
+
+  <!-- Stage 2 -->
+  <rect class="stage" x="240" y="80" width="180" height="120" rx="10" fill="#dcfce7"/>
+  <text class="number" x="252" y="100">STAGE 2</text>
+  <text class="label"  x="252" y="120">Filter applicability</text>
+  <text class="small"  x="252" y="142">match entity class</text>
+  <text class="small"  x="252" y="158">+ optional predefined type</text>
+  <text class="small"  x="252" y="180">per specification</text>
+
+  <!-- Stage 3 -->
+  <rect class="stage" x="450" y="80" width="180" height="120" rx="10" fill="#fef3c7"/>
+  <text class="number" x="462" y="100">STAGE 3</text>
+  <text class="label"  x="462" y="120">Check requirements</text>
+  <text class="small"  x="462" y="142">property / attribute</text>
+  <text class="small"  x="462" y="158">material / partOf</text>
+  <text class="small"  x="462" y="180">cardinality = required</text>
+
+  <!-- Stage 4 -->
+  <rect class="stage" x="660" y="80" width="180" height="120" rx="10" fill="#f3e8ff"/>
+  <text class="number" x="672" y="100">STAGE 4</text>
+  <text class="label"  x="672" y="120">Emit reports</text>
+  <text class="small"  x="672" y="142">JSON, HTML, BCF</text>
+  <text class="small"  x="672" y="158">summary.csv</text>
+  <text class="small"  x="672" y="180">failures.csv</text>
+
+  <!-- Arrows between stages -->
+  <path class="line" d="M210 140 L240 140" marker-end="url(#arrow)"/>
+  <path class="line" d="M420 140 L450 140" marker-end="url(#arrow)"/>
+  <path class="line" d="M630 140 L660 140" marker-end="url(#arrow)"/>
+
+  <!-- Output sink -->
+  <rect class="stage" x="870" y="80" width="110" height="120" rx="10" fill="#f9fafb"/>
+  <text class="label" x="882" y="120">consumer</text>
+  <text class="small" x="882" y="142">BIM author</text>
+  <text class="small" x="882" y="158">commissioning</text>
+  <text class="small" x="882" y="174">CDE / Trimble</text>
+  <text class="small" x="882" y="190">Plannerly</text>
+  <path class="line" d="M840 140 L870 140" marker-end="url(#arrow)"/>
+
+  <!-- LLM extension lane -->
+  <rect class="stage" x="30"  y="260" width="240" height="150" rx="10" fill="#fee2e2"/>
+  <text class="number" x="42"  y="280">LLM extension A</text>
+  <text class="label"  x="42"  y="300">EIR -&gt; IDS generator</text>
+  <text class="small"  x="42"  y="322">Claude (sonnet-4-6)</text>
+  <text class="small"  x="42"  y="340">+ XSD validation gate</text>
+  <text class="small"  x="42"  y="358">amends mep_services_v1.ids</text>
+  <text class="small"  x="42"  y="376">or saves to a new .ids file</text>
+
+  <rect class="stage" x="300" y="260" width="240" height="150" rx="10" fill="#fee2e2"/>
+  <text class="number" x="312" y="280">LLM extension B</text>
+  <text class="label"  x="312" y="300">Remediation generator</text>
+  <text class="small"  x="312" y="322">reads JSON failures</text>
+  <text class="small"  x="312" y="340">batches into Claude calls</text>
+  <text class="small"  x="312" y="358">writes 'remediation' field per</text>
+  <text class="small"  x="312" y="376">failed entity in the report</text>
+
+  <!-- Loop arrows -->
+  <path class="loop" d="M150 260 L150 220 L150 200" marker-end="url(#arrow)"/>
+  <text class="loop-label" x="160" y="246">amends IDS used in stage 1</text>
+
+  <path class="loop" d="M750 200 L750 290 L540 290" marker-end="url(#arrow)"/>
+  <text class="loop-label" x="555" y="280">failures from stage 4</text>
+
+  <path class="loop" d="M540 335 L750 335 L750 200" marker-end="url(#arrow)"/>
+  <text class="loop-label" x="555" y="350">annotated report -&gt; consumer</text>
+
+  <!-- Footer -->
+  <text class="small" x="30" y="445">Stages 1-4 use only ifcopenshell + ifctester (the buildingSMART reference openBIM stack). Both LLM extensions guard their output against the same XSD or report schema before persistence.</text>
+</svg>
+</div></p>
+<h2>3 — Results</h2>
+<p>The validator was run end-to-end against two public IFC4 test models.
+The originally targeted Auckland Open IFC Model Repository
+(<code>Trapelo_IFC4_MEP.ifc</code>, <code>Hospital_IFC4_SPR.ifc</code>) requires an
+interactive browser login and could not be automated, so two
+no-login replacements were selected after a thorough scan of the
+buildingSMART, OSArch, EnEff:BIM and IfcOpenShell sample repositories.</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Source</th>
+<th>Schema</th>
+<th>Size</th>
+<th>Specs pass</th>
+<th>Checks pass</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Ifc4_Revit_MEP.ifc</code></td>
+<td>Autodesk RME Advanced Sample, IFC4 export</td>
+<td>IFC4</td>
+<td>27.8 MB</td>
+<td>5/9</td>
+<td>76 %</td>
+</tr>
+<tr>
+<td><code>BoilerGasRadiatorDomesticHotWater.ifc</code></td>
+<td>EnEff:BIM VDI 6020 reference (MIT)</td>
+<td>IFC4</td>
+<td>1.35 MB</td>
+<td>6/9</td>
+<td>62 %</td>
+</tr>
+</tbody>
+</table>
+<p>Validation timings on a Windows 11 laptop:
+<code>ifcopenshell.open()</code> 0.11 – 2.26 s, <code>ifctester.ids.validate()</code> 0.01 –
+0.50 s. Both numbers are an order of magnitude below the known 20-min
+slowdown documented in IfcOpenShell GitHub Discussion #6782 — that
+issue is triggered by complex applicability restrictions, not by the
+entity-class-only filters used in <code>mep_services_v1.ids</code>.</p>
+<p>Two findings worth highlighting:</p>
+<ol>
+<li><strong>Spec MEP-04 was rewritten during the build.</strong> The handover plan
+   listed <code>IfcSprinkler</code> as the applicability entity. <code>IfcSprinkler</code>
+   exists in IFC2X3 but was <strong>retired in IFC4</strong>; sprinklers are
+   modelled as <code>IfcFireSuppressionTerminal</code> with
+   <code>PredefinedType=SPRINKLER</code>. The original spec would have matched
+   zero entities in either IFC4 model. The corrected MEP-04 targets
+   <code>IfcFireSuppressionTerminal</code> directly and surfaces six fail rows
+   (all <code>NOTDEFINED</code> PredefinedType, all missing
+   <code>Pset_FireSuppressionTerminalSprinkler</code>) in the Revit sample.</li>
+<li><strong><code>IfcDistributionPort.FlowDirection</code> is the only requirement that
+   passes 100 % on the Revit MEP sample.</strong> Of 8,515 ports, every single
+   one declares a flow direction — Revit's IFC exporter writes it
+   reliably. By contrast, none of the 491 <code>IfcPipeSegment</code>,
+   837 <code>IfcDuctSegment</code>, or 11 <code>IfcFlowTerminal</code> entities meet the
+   ruleset, because the Pset_*TypeCommon property sets that the IDS
+   requires are simply not authored by the Revit sample's exporter.
+   This is exactly the kind of authoring gap an IDS is built to catch.</li>
+</ol>
+<p>LLM-generated output (Sonnet 4.6, with the API key present in <code>.env</code>):
+the EIR-to-IDS generator translated three sample clauses (AHU air-flow,
+DHW tank capacity, chiller cooling capacity) into valid IDS XML that
+round-trip-parses through <code>ifctester.ids.open()</code>. The remediation
+generator annotated the first five failures with paragraphs naming the
+specific <code>Pset.Property</code> to add and the practical downstream impact.</p>
+<h2>4 — Discussion</h2>
+<p>What worked: the openBIM choice was vindicated by the result.
+Authoring the IDS via <code>ifctester.ids</code> constructors guarantees XSD
+validity in a way that hand-written XML simply does not — and the same
+guarantee then transfers to the LLM module's output, because the
+generator's reply is wrapped in a complete IDS document and validated
+against the same XSD before persistence. The LLM gate makes
+"natural-language to machine-checkable rule" a one-call operation
+rather than a two-week BIM-execution-plan workshop.</p>
+<p>What did not work as planned: the original Auckland test models were
+unreachable, which delayed the run-end-to-end milestone. The chosen
+replacements cover seven of the nine specifications between them;
+<code>IfcCableSegment</code> and <code>IfcElectricAppliance</code> are not represented in
+either file. Rather than weaken the IDS to fit the available data, the
+ruleset retains those specifications and the validator honestly reports
+"0 applicable entities — SKIP" — which is a feature, not a defect: a
+real EIR is written for the building, not for the test sample.</p>
+<p>The pyRevit path the slides nudge toward is still reachable from this
+codebase. A pyRevit wrapper would call <code>validator.run()</code> exactly as the
+CLI does, with the in-session document path passed in. The
+implementation choice is, in other words, additive rather than
+exclusive: openBIM is the right surface for the IDS contract, and
+pyRevit can sit on top of it if a specific firm needs an in-Revit
+button. The dissertation chapter that grows out of this assignment will
+extend the architecture with (a) a streaming validator for IFCs above
+500 MB and (b) a feedback loop where commissioning evidence (BCF
+issues with measurements) can amend the IDS automatically — closing the
+EIR → IDS → check → evidence circle.</p></body></html>

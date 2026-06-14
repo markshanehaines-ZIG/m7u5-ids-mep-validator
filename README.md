@@ -28,17 +28,49 @@ for the full 2-page report.
 
 ---
 
-## Reproduction (placeholder — completed in Phase 7)
+## Reproduction
 
 ```bash
 git clone https://github.com/markshanehaines-ZIG/m7u5-ids-mep-validator.git
 cd m7u5-ids-mep-validator
 python -m venv venv && source venv/Scripts/activate
 pip install -r requirements.txt
-cp .env.template .env   # then add your ANTHROPIC_API_KEY in your editor
+cp .env.template .env       # then paste your ANTHROPIC_API_KEY into .env in VS Code
 # Download the two IFC test models into ifc/ (commands below)
 python -m src.cli --ifc ifc/Ifc4_Revit_MEP.ifc --ids ids/mep_services_v1.ids --out results/
 ```
+
+### Run the test suite
+
+```bash
+python -m pytest tests/ -v
+```
+Four smoke tests cover IDS XSD round-trip, validator output shape, the
+distribution-port specification's expected 100 % pass rate on the
+secondary IFC, and the multi-format reporter. Total runtime ~2 s.
+
+### Run the LLM modules
+
+With `ANTHROPIC_API_KEY` set in `.env`:
+
+```bash
+python -m src.llm_eir_to_ids \
+    --input queries/sample_eir_clauses.txt \
+    --out   ids/generated_demo.ids
+
+python -m src.llm_remediation \
+    --report results/Ifc4_Revit_MEP_report.json \
+    --out    results/Ifc4_Revit_MEP_remediated.json \
+    --limit  20
+```
+
+### Render the technical report to PDF
+
+```bash
+python scripts/build_report_pdf.py
+```
+Uses Microsoft Edge headless (pre-installed on Windows) so there is no
+GTK / wkhtmltopdf dependency to set up.
 
 ### IFC test models
 

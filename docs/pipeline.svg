@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 460" font-family="Inter, 'Segoe UI', Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f2937"/>
+    </marker>
+    <style>
+      .stage { stroke: #1f2937; stroke-width: 1.5; fill: #ffffff; }
+      .label { font-size: 15px; font-weight: 600; fill: #111827; }
+      .small { font-size: 11px; fill: #4b5563; }
+      .title { font-size: 18px; font-weight: 600; fill: #111827; }
+      .number { font-size: 12px; font-weight: 700; fill: #6b7280; }
+      .line { stroke: #1f2937; stroke-width: 2; fill: none; }
+      .loop  { stroke: #b91c1c; stroke-width: 1.5; stroke-dasharray: 6 4; fill: none; }
+      .loop-label { font-size: 11px; fill: #b91c1c; }
+    </style>
+  </defs>
+
+  <text class="title" x="20" y="32">M7U5 — IDS validation pipeline with LLM extension</text>
+
+  <!-- Stage 1 -->
+  <rect class="stage" x="30"  y="80" width="180" height="120" rx="10" fill="#e0f2fe"/>
+  <text class="number" x="42"  y="100">STAGE 1</text>
+  <text class="label"  x="42"  y="120">Load inputs</text>
+  <text class="small"  x="42"  y="142">ifcopenshell.open(.ifc)</text>
+  <text class="small"  x="42"  y="158">ifctester.ids.open(.ids)</text>
+  <text class="small"  x="42"  y="180">XSD round-trip check</text>
+
+  <!-- Stage 2 -->
+  <rect class="stage" x="240" y="80" width="180" height="120" rx="10" fill="#dcfce7"/>
+  <text class="number" x="252" y="100">STAGE 2</text>
+  <text class="label"  x="252" y="120">Filter applicability</text>
+  <text class="small"  x="252" y="142">match entity class</text>
+  <text class="small"  x="252" y="158">+ optional predefined type</text>
+  <text class="small"  x="252" y="180">per specification</text>
+
+  <!-- Stage 3 -->
+  <rect class="stage" x="450" y="80" width="180" height="120" rx="10" fill="#fef3c7"/>
+  <text class="number" x="462" y="100">STAGE 3</text>
+  <text class="label"  x="462" y="120">Check requirements</text>
+  <text class="small"  x="462" y="142">property / attribute</text>
+  <text class="small"  x="462" y="158">material / partOf</text>
+  <text class="small"  x="462" y="180">cardinality = required</text>
+
+  <!-- Stage 4 -->
+  <rect class="stage" x="660" y="80" width="180" height="120" rx="10" fill="#f3e8ff"/>
+  <text class="number" x="672" y="100">STAGE 4</text>
+  <text class="label"  x="672" y="120">Emit reports</text>
+  <text class="small"  x="672" y="142">JSON, HTML, BCF</text>
+  <text class="small"  x="672" y="158">summary.csv</text>
+  <text class="small"  x="672" y="180">failures.csv</text>
+
+  <!-- Arrows between stages -->
+  <path class="line" d="M210 140 L240 140" marker-end="url(#arrow)"/>
+  <path class="line" d="M420 140 L450 140" marker-end="url(#arrow)"/>
+  <path class="line" d="M630 140 L660 140" marker-end="url(#arrow)"/>
+
+  <!-- Output sink -->
+  <rect class="stage" x="870" y="80" width="110" height="120" rx="10" fill="#f9fafb"/>
+  <text class="label" x="882" y="120">consumer</text>
+  <text class="small" x="882" y="142">BIM author</text>
+  <text class="small" x="882" y="158">commissioning</text>
+  <text class="small" x="882" y="174">CDE / Trimble</text>
+  <text class="small" x="882" y="190">Plannerly</text>
+  <path class="line" d="M840 140 L870 140" marker-end="url(#arrow)"/>
+
+  <!-- LLM extension lane -->
+  <rect class="stage" x="30"  y="260" width="240" height="150" rx="10" fill="#fee2e2"/>
+  <text class="number" x="42"  y="280">LLM extension A</text>
+  <text class="label"  x="42"  y="300">EIR -&gt; IDS generator</text>
+  <text class="small"  x="42"  y="322">Claude (sonnet-4-6)</text>
+  <text class="small"  x="42"  y="340">+ XSD validation gate</text>
+  <text class="small"  x="42"  y="358">amends mep_services_v1.ids</text>
+  <text class="small"  x="42"  y="376">or saves to a new .ids file</text>
+
+  <rect class="stage" x="300" y="260" width="240" height="150" rx="10" fill="#fee2e2"/>
+  <text class="number" x="312" y="280">LLM extension B</text>
+  <text class="label"  x="312" y="300">Remediation generator</text>
+  <text class="small"  x="312" y="322">reads JSON failures</text>
+  <text class="small"  x="312" y="340">batches into Claude calls</text>
+  <text class="small"  x="312" y="358">writes 'remediation' field per</text>
+  <text class="small"  x="312" y="376">failed entity in the report</text>
+
+  <!-- Loop arrows -->
+  <path class="loop" d="M150 260 L150 220 L150 200" marker-end="url(#arrow)"/>
+  <text class="loop-label" x="160" y="246">amends IDS used in stage 1</text>
+
+  <path class="loop" d="M750 200 L750 290 L540 290" marker-end="url(#arrow)"/>
+  <text class="loop-label" x="555" y="280">failures from stage 4</text>
+
+  <path class="loop" d="M540 335 L750 335 L750 200" marker-end="url(#arrow)"/>
+  <text class="loop-label" x="555" y="350">annotated report -&gt; consumer</text>
+
+  <!-- Footer -->
+  <text class="small" x="30" y="445">Stages 1-4 use only ifcopenshell + ifctester (the buildingSMART reference openBIM stack). Both LLM extensions guard their output against the same XSD or report schema before persistence.</text>
+</svg>
