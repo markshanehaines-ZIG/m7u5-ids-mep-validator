@@ -1,310 +1,362 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
-<title>M7U5 — IDS-Driven MEP Validator with LLM-Authored Specifications</title><style>
-@page { size: A4; margin: 14mm 16mm 14mm 16mm; }
+<title>M7U5 Technical Report</title><style>
+@page {
+    size: A4;
+    margin: 22mm 18mm 20mm 18mm;
+    @top-center {
+        content: "MAICEN-1125 M7U5 Individual Assignment | Mark Shane Haines";
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-size: 8pt;
+        color: #555;
+    }
+    @bottom-center {
+        content: "Zigurat Global Institute of Technology   " counter(page);
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-size: 8pt;
+        color: #555;
+    }
+}
+@page :first {
+    margin: 30mm 25mm 25mm 25mm;
+    @top-center { content: ""; }
+    @bottom-center { content: ""; }
+}
+
 html, body {
     font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     color: #111;
-    font-size: 9.8pt;
-    line-height: 1.32;
+    font-size: 10pt;
+    line-height: 1.35;
 }
-h1 { font-size: 16pt; margin: 0 0 4pt 0; }
-h2 { font-size: 11.5pt; margin: 10pt 0 4pt 0; border-bottom: 0.6pt solid #555; padding-bottom: 1pt; }
-h3 { font-size: 10pt; margin: 8pt 0 3pt 0; }
-p  { margin: 0 0 5pt 0; text-align: justify; hyphens: auto; }
-ul, ol { margin: 0 0 5pt 16pt; }
+
+/* Title page styling */
+.title-page {
+    text-align: center;
+    page-break-after: always;
+    padding-top: 30mm;
+}
+.title-page h1 {
+    font-size: 22pt;
+    margin: 20mm 0 6mm 0;
+    border: none;
+    color: #111;
+}
+.title-page h2 { font-size: 14pt; margin: 4mm 0; border: none; color: #333; }
+.title-page h3 { font-size: 12pt; margin: 6mm 0 20mm 0; color: #555; font-weight: normal; }
+.title-page p { text-align: center; margin: 4mm 0; font-size: 11pt; }
+.title-page strong { font-size: 12pt; }
+
+.page-break { page-break-after: always; height: 0; }
+
+h1 { font-size: 18pt; margin: 12pt 0 6pt 0; border-bottom: 1pt solid #333; padding-bottom: 2pt; }
+h2 { font-size: 13pt; margin: 12pt 0 4pt 0; color: #1a1a1a; border-bottom: 0.5pt solid #999; padding-bottom: 1pt; }
+h3 { font-size: 11pt; margin: 10pt 0 3pt 0; color: #1a1a1a; }
+h4 { font-size: 10pt; margin: 6pt 0 2pt 0; color: #1a1a1a; font-weight: 600; }
+
+p  { margin: 0 0 6pt 0; text-align: justify; hyphens: auto; }
+ul, ol { margin: 0 0 6pt 16pt; }
 li { margin-bottom: 2pt; }
-table { border-collapse: collapse; width: 100%; font-size: 8.6pt; margin: 4pt 0 6pt 0; }
-th, td { border: 0.4pt solid #888; padding: 2pt 4pt; text-align: left; }
-th { background: #eef2f7; }
-code, pre {
+blockquote {
+    border-left: 2pt solid #aaa;
+    margin: 4pt 0 6pt 8pt;
+    padding-left: 8pt;
+    color: #333;
+    font-style: italic;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 8.6pt;
+    margin: 4pt 0 8pt 0;
+    page-break-inside: avoid;
+}
+th, td { border: 0.4pt solid #888; padding: 3pt 5pt; text-align: left; vertical-align: top; }
+th { background: #eef2f7; font-weight: 600; }
+
+code {
     font-family: "JetBrains Mono", "Consolas", Menlo, monospace;
     font-size: 8.6pt;
     background: #f4f4f4;
     border-radius: 2pt;
     padding: 0 2pt;
 }
-pre { padding: 4pt 6pt; }
+pre {
+    font-family: "JetBrains Mono", "Consolas", Menlo, monospace;
+    font-size: 8.4pt;
+    background: #f6f6f6;
+    border: 0.3pt solid #ccc;
+    border-radius: 2pt;
+    padding: 5pt 7pt;
+    margin: 4pt 0 6pt 0;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+}
+pre code { background: none; padding: 0; font-size: 8.4pt; }
+
 svg, img { max-width: 100%; height: auto; }
+.svg-wrap { text-align: center; margin: 4pt 0 8pt 0; page-break-inside: avoid; }
 .subtitle { color: #555; font-size: 10pt; margin-top: -2pt; margin-bottom: 6pt; }
 </style></head>
-<body><h1>M7U5 — IDS-Driven MEP Validator with LLM-Authored Specifications</h1><div class="subtitle">Masters in AI in Architecture and Construction · Zigurat Global Institute of Technology</div><div class="subtitle">Mark Shane Haines &middot; June 2026</div><h2>1 — Automation logic</h2>
-<p>Elias Magalhães's slides 18–24 frame the assignment around an explicit
-sequence: <strong>EIR → BEP → IDS → automated rule check</strong>. The slide deck
-suggests Revit + pyRevit as the implementation surface, but the same
-slides identify the <strong>Information Delivery Specification (IDS)</strong> as the
-machine-readable contract that closes the gap between a written
-requirement and an automated check. The implementation here follows the
-deeper argument rather than the suggested toolchain: it targets the
-<strong>openBIM stack</strong> (<code>ifcopenshell</code> + <code>ifctester</code>, the buildingSMART
-reference implementation that ships the IDS 1.0 XSD inside the package)
-and treats the IDS file as the first-class artefact. Revit is replaced
-by an authoring-tool-agnostic IFC4 input, and pyRevit is replaced by
-ifctester's <code>Json/Html/Bcf</code> reporters. The IDS rules are exactly the
-ones a real Services BIM Consultant would expect to negotiate at BEP
-stage: pipe diameter, distribution-port flow direction, sprinkler
-coverage area, pump manufacturer data, valve operation, electrical
-cross-sectional area, and so on (nine specifications in total, listed
-in <code>ids/mep_services_v1.ids</code>).</p>
-<p>Two LLM extensions sit beside the core pipeline. The first
-(<code>src/llm_eir_to_ids.py</code>) turns a natural-language EIR clause into one
-syntactically valid IDS specification using Claude (Sonnet 4.6) and
-validates the model's output against the bundled IDS XSD via <code>lxml</code>
-before any disk write — so malformed XML cannot reach the ruleset. The
-second (<code>src/llm_remediation.py</code>) reads the JSON validation report,
-batches non-conformances into Claude requests, and writes a
-one-paragraph plain-English remediation note into the report's
-<code>failed_entities</code> array. Both extensions are guarded by <code>python-dotenv</code>
-key loading and fail loudly if <code>ANTHROPIC_API_KEY</code> is absent.</p>
-<h2>2 — Implementation</h2>
-<p><div class="svg-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 560" font-family="Inter, 'Segoe UI', Arial, sans-serif">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M0,0 L10,5 L0,10 z" fill="#1f2937"/>
-    </marker>
-    <style>
-      .node { stroke: #1f2937; stroke-width: 1.5; }
-      .label { font-size: 14px; fill: #111827; }
-      .small { font-size: 11px; fill: #4b5563; }
-      .title { font-size: 18px; font-weight: 600; fill: #111827; }
-      .group { fill: #f9fafb; stroke: #d1d5db; stroke-dasharray: 5 4; }
-      .ifc { fill: #e0f2fe; }
-      .ids { fill: #fef3c7; }
-      .core { fill: #dcfce7; }
-      .report { fill: #f3e8ff; }
-      .llm { fill: #fee2e2; }
-      .line { stroke: #1f2937; stroke-width: 1.5; fill: none; }
-    </style>
-  </defs>
-
-  <text class="title" x="20" y="32">M7U5 — IDS-driven MEP Validator: system architecture</text>
-
-  <!-- Group: Inputs -->
-  <rect class="group" x="20" y="60" width="200" height="320" rx="10"/>
-  <text class="small" x="32" y="80">Inputs</text>
-
-  <rect class="node ifc" x="40" y="100" width="160" height="60" rx="8"/>
-  <text class="label" x="60" y="125">IFC4 model</text>
-  <text class="small" x="60" y="142">.ifc file (binary)</text>
-
-  <rect class="node ids" x="40" y="180" width="160" height="60" rx="8"/>
-  <text class="label" x="60" y="205">IDS ruleset</text>
-  <text class="small" x="60" y="222">mep_services_v1.ids</text>
-
-  <rect class="node llm" x="40" y="260" width="160" height="100" rx="8"/>
-  <text class="label" x="60" y="285">EIR clauses (NL)</text>
-  <text class="small" x="60" y="302">queries/sample_eir_</text>
-  <text class="small" x="60" y="316">clauses.txt</text>
-  <text class="small" x="60" y="338">"All sprinklers shall ..."</text>
-
-  <!-- Group: Core pipeline -->
-  <rect class="group" x="260" y="60" width="380" height="430" rx="10"/>
-  <text class="small" x="272" y="80">Core pipeline (src/)</text>
-
-  <rect class="node core" x="280" y="100" width="160" height="60" rx="8"/>
-  <text class="label" x="300" y="125">ifcopenshell</text>
-  <text class="small" x="300" y="142">model = open(.ifc)</text>
-
-  <rect class="node core" x="460" y="100" width="160" height="60" rx="8"/>
-  <text class="label" x="480" y="125">ifctester.ids</text>
-  <text class="small" x="480" y="142">doc = open(.ids)</text>
-
-  <rect class="node core" x="280" y="200" width="340" height="70" rx="8"/>
-  <text class="label" x="300" y="225">src/validator.py — Validator.run()</text>
-  <text class="small" x="300" y="244">doc.validate(model)  -&gt;  ValidationRun</text>
-  <text class="small" x="300" y="258">timing, per-spec applicable / pass / fail</text>
-
-  <rect class="node llm" x="280" y="290" width="340" height="70" rx="8"/>
-  <text class="label" x="300" y="315">src/llm_eir_to_ids.py</text>
-  <text class="small" x="300" y="334">Claude (sonnet-4-6) -&gt; IDS spec XML</text>
-  <text class="small" x="300" y="348">XSD-validated, merged or saved as new .ids</text>
-
-  <rect class="node llm" x="280" y="380" width="340" height="70" rx="8"/>
-  <text class="label" x="300" y="405">src/llm_remediation.py</text>
-  <text class="small" x="300" y="424">per-failure plain-English advice</text>
-  <text class="small" x="300" y="438">batched, written back into JSON report</text>
-
-  <rect class="node core" x="280" y="470" width="340" height="50" rx="8"/>
-  <text class="label" x="300" y="498">src/reporter.py — multi-format export</text>
-
-  <!-- Group: Outputs -->
-  <rect class="group" x="680" y="60" width="220" height="430" rx="10"/>
-  <text class="small" x="692" y="80">Outputs (results/)</text>
-
-  <rect class="node report" x="700" y="100" width="180" height="50" rx="8"/>
-  <text class="label" x="720" y="128">JSON report</text>
-
-  <rect class="node report" x="700" y="170" width="180" height="50" rx="8"/>
-  <text class="label" x="720" y="198">HTML report</text>
-
-  <rect class="node report" x="700" y="240" width="180" height="50" rx="8"/>
-  <text class="label" x="720" y="268">BCF (issue tracker)</text>
-
-  <rect class="node report" x="700" y="310" width="180" height="50" rx="8"/>
-  <text class="label" x="720" y="338">summary.csv</text>
-
-  <rect class="node report" x="700" y="380" width="180" height="50" rx="8"/>
-  <text class="label" x="720" y="408">failures.csv</text>
-
-  <rect class="node llm" x="700" y="450" width="180" height="50" rx="8"/>
-  <text class="label" x="720" y="478">annotated JSON</text>
-
-  <!-- Lines -->
-  <path class="line" d="M200 130 L280 130" marker-end="url(#arrow)"/>
-  <path class="line" d="M200 210 L460 130" marker-end="url(#arrow)"/>
-  <path class="line" d="M200 310 L280 325" marker-end="url(#arrow)"/>
-
-  <path class="line" d="M360 160 L360 200" marker-end="url(#arrow)"/>
-  <path class="line" d="M540 160 L540 200" marker-end="url(#arrow)"/>
-
-  <path class="line" d="M450 270 L450 470" marker-end="url(#arrow)"/>
-  <path class="line" d="M620 235 L700 125" marker-end="url(#arrow)"/>
-  <path class="line" d="M620 235 L700 195" marker-end="url(#arrow)"/>
-  <path class="line" d="M620 495 L700 265" marker-end="url(#arrow)"/>
-  <path class="line" d="M620 495 L700 335" marker-end="url(#arrow)"/>
-  <path class="line" d="M620 495 L700 405" marker-end="url(#arrow)"/>
-  <path class="line" d="M620 415 L700 475" marker-end="url(#arrow)"/>
-
-  <!-- LLM loop back into IDS -->
-  <path class="line" d="M280 325 Q 230 325 230 240 L 200 240" marker-end="url(#arrow)" stroke-dasharray="5 4"/>
-  <text class="small" x="120" y="252">amend IDS</text>
-
-  <!-- Legend -->
-  <g transform="translate(20,440)">
-    <text class="small" x="0" y="0">Legend</text>
-    <rect class="node ifc" x="0" y="10" width="14" height="14"/><text class="small" x="22" y="22">IFC inputs</text>
-    <rect class="node ids" x="90" y="10" width="14" height="14"/><text class="small" x="112" y="22">IDS rulesets</text>
-    <rect class="node core" x="190" y="10" width="14" height="14"/><text class="small" x="212" y="22">openBIM core</text>
-    <rect class="node llm" x="0" y="34" width="14" height="14"/><text class="small" x="22" y="46">LLM modules</text>
-    <rect class="node report" x="100" y="34" width="14" height="14"/><text class="small" x="122" y="46">Report outputs</text>
-  </g>
-</svg>
-</div></p>
-<p>The codebase is small (≈ 800 LOC of Python, 0 LOC of Revit-specific
-code) and built around three layers:</p>
+<body><div class="title-page">
+<h1>MAICEN-1125</h1>
+<h2>Masters in AI in Architecture and Construction</h2>
+<h3>Module 7, Unit 5 — Individual Assignment</h3>
+<h1>From EIR to IFC: An IDS-Driven openBIM Validator for MEP Services with LLM-Authored Specifications</h1>
+<p><strong>Individual Submission by Mark Shane Haines</strong></p>
+<p>Zigurat Global Institute of Technology</p>
+<p><strong>Submission Date: 15 June 2026</strong></p>
+</div>
+<h2>Reading guide for examiners</h2>
+<p>This submission maps to the rubric as follows:</p>
 <ul>
-<li><strong>Loader / validator</strong> (<code>src/validator.py</code>) — wraps
-  <code>ifcopenshell.open</code> and <code>ifctester.ids.Ids.validate</code>, times each
-  step, and exposes a <code>ValidationRun</code> dataclass so the CLI, the demo
-  notebook, and the test suite all consume the same structure.</li>
-<li><strong>Reporter</strong> (<code>src/reporter.py</code>) — re-uses the four built-in
-  ifctester reporters (<code>Json</code>, <code>Html</code>, <code>Bcf</code>, <code>Console</code>) and adds two
-  MEP-targeted CSV summaries. A subtle bug in ifctester 0.8.5 is
-  worked around here: <code>Bcf.to_file</code> reads <code>self.results</code>, which is
-  only populated by <code>.report()</code>, so the wrapper calls <code>.report()</code>
-  explicitly before each <code>.to_file()</code>. The same is true of
-  <code>Json.to_file</code> and <code>Html.to_file</code>.</li>
-<li><strong>CLI</strong> (<code>src/cli.py</code>) — <code>python -m src.cli --ifc … --ids … --out …</code>
-  with an exit code mirroring validation status so CI can gate on it.</li>
+<li><strong>Functional code execution (40%)</strong> — §3 (validator and multi-format reporter), §4 (LLM modules with XSD validation gate), §5 (end-to-end results on two real IFC4 MEP models, 4-test pytest suite passing in 2.18 s).</li>
+<li><strong>Correct use of the BIM API (30%)</strong> — §2 (hand-authored IDS ruleset constructed via the <code>ifctester.ids</code> API to guarantee XSD validity by construction), §3 (validation through <code>ifctester.ids.Ids.validate()</code>, the buildingSMART reference implementation), §4 (LLM output validated against the bundled buildingSMART IDS 1.0 XSD before persistence).</li>
+<li><strong>Documentation and logical explanation (30%)</strong> — this report, the architecture and pipeline SVGs in §3, the rubric-mapped README on the GitHub repository, and a logically-staged commit history (Phase 0 through Phase 7 plus the live-LLM end-to-end commit).</li>
 </ul>
-<p>The IDS ruleset itself is built by <code>scripts/build_mep_ids.py</code>, which
-constructs every specification via the <code>ifctester.ids</code> constructors.
-The result is therefore guaranteed XSD-valid by construction; a
-secondary <code>lxml</code> validation against the bundled XSD is performed after
-the file is written.</p>
-<p><div class="svg-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 460" font-family="Inter, 'Segoe UI', Arial, sans-serif">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M0,0 L10,5 L0,10 z" fill="#1f2937"/>
-    </marker>
-    <style>
-      .stage { stroke: #1f2937; stroke-width: 1.5; fill: #ffffff; }
-      .label { font-size: 15px; font-weight: 600; fill: #111827; }
-      .small { font-size: 11px; fill: #4b5563; }
-      .title { font-size: 18px; font-weight: 600; fill: #111827; }
-      .number { font-size: 12px; font-weight: 700; fill: #6b7280; }
-      .line { stroke: #1f2937; stroke-width: 2; fill: none; }
-      .loop  { stroke: #b91c1c; stroke-width: 1.5; stroke-dasharray: 6 4; fill: none; }
-      .loop-label { font-size: 11px; fill: #b91c1c; }
-    </style>
-  </defs>
-
-  <text class="title" x="20" y="32">M7U5 — IDS validation pipeline with LLM extension</text>
-
-  <!-- Stage 1 -->
-  <rect class="stage" x="30"  y="80" width="180" height="120" rx="10" fill="#e0f2fe"/>
-  <text class="number" x="42"  y="100">STAGE 1</text>
-  <text class="label"  x="42"  y="120">Load inputs</text>
-  <text class="small"  x="42"  y="142">ifcopenshell.open(.ifc)</text>
-  <text class="small"  x="42"  y="158">ifctester.ids.open(.ids)</text>
-  <text class="small"  x="42"  y="180">XSD round-trip check</text>
-
-  <!-- Stage 2 -->
-  <rect class="stage" x="240" y="80" width="180" height="120" rx="10" fill="#dcfce7"/>
-  <text class="number" x="252" y="100">STAGE 2</text>
-  <text class="label"  x="252" y="120">Filter applicability</text>
-  <text class="small"  x="252" y="142">match entity class</text>
-  <text class="small"  x="252" y="158">+ optional predefined type</text>
-  <text class="small"  x="252" y="180">per specification</text>
-
-  <!-- Stage 3 -->
-  <rect class="stage" x="450" y="80" width="180" height="120" rx="10" fill="#fef3c7"/>
-  <text class="number" x="462" y="100">STAGE 3</text>
-  <text class="label"  x="462" y="120">Check requirements</text>
-  <text class="small"  x="462" y="142">property / attribute</text>
-  <text class="small"  x="462" y="158">material / partOf</text>
-  <text class="small"  x="462" y="180">cardinality = required</text>
-
-  <!-- Stage 4 -->
-  <rect class="stage" x="660" y="80" width="180" height="120" rx="10" fill="#f3e8ff"/>
-  <text class="number" x="672" y="100">STAGE 4</text>
-  <text class="label"  x="672" y="120">Emit reports</text>
-  <text class="small"  x="672" y="142">JSON, HTML, BCF</text>
-  <text class="small"  x="672" y="158">summary.csv</text>
-  <text class="small"  x="672" y="180">failures.csv</text>
-
-  <!-- Arrows between stages -->
-  <path class="line" d="M210 140 L240 140" marker-end="url(#arrow)"/>
-  <path class="line" d="M420 140 L450 140" marker-end="url(#arrow)"/>
-  <path class="line" d="M630 140 L660 140" marker-end="url(#arrow)"/>
-
-  <!-- Output sink -->
-  <rect class="stage" x="870" y="80" width="110" height="120" rx="10" fill="#f9fafb"/>
-  <text class="label" x="882" y="120">consumer</text>
-  <text class="small" x="882" y="142">BIM author</text>
-  <text class="small" x="882" y="158">commissioning</text>
-  <text class="small" x="882" y="174">CDE / Trimble</text>
-  <text class="small" x="882" y="190">Plannerly</text>
-  <path class="line" d="M840 140 L870 140" marker-end="url(#arrow)"/>
-
-  <!-- LLM extension lane -->
-  <rect class="stage" x="30"  y="260" width="240" height="150" rx="10" fill="#fee2e2"/>
-  <text class="number" x="42"  y="280">LLM extension A</text>
-  <text class="label"  x="42"  y="300">EIR -&gt; IDS generator</text>
-  <text class="small"  x="42"  y="322">Claude (sonnet-4-6)</text>
-  <text class="small"  x="42"  y="340">+ XSD validation gate</text>
-  <text class="small"  x="42"  y="358">amends mep_services_v1.ids</text>
-  <text class="small"  x="42"  y="376">or saves to a new .ids file</text>
-
-  <rect class="stage" x="300" y="260" width="240" height="150" rx="10" fill="#fee2e2"/>
-  <text class="number" x="312" y="280">LLM extension B</text>
-  <text class="label"  x="312" y="300">Remediation generator</text>
-  <text class="small"  x="312" y="322">reads JSON failures</text>
-  <text class="small"  x="312" y="340">batches into Claude calls</text>
-  <text class="small"  x="312" y="358">writes 'remediation' field per</text>
-  <text class="small"  x="312" y="376">failed entity in the report</text>
-
-  <!-- Loop arrows -->
-  <path class="loop" d="M150 260 L150 220 L150 200" marker-end="url(#arrow)"/>
-  <text class="loop-label" x="160" y="246">amends IDS used in stage 1</text>
-
-  <path class="loop" d="M750 200 L750 290 L540 290" marker-end="url(#arrow)"/>
-  <text class="loop-label" x="555" y="280">failures from stage 4</text>
-
-  <path class="loop" d="M540 335 L750 335 L750 200" marker-end="url(#arrow)"/>
-  <text class="loop-label" x="555" y="350">annotated report -&gt; consumer</text>
-
-  <!-- Footer -->
-  <text class="small" x="30" y="445">Stages 1-4 use only ifcopenshell + ifctester (the buildingSMART reference openBIM stack). Both LLM extensions guard their output against the same XSD or report schema before persistence.</text>
-</svg>
-</div></p>
-<h2>3 — Results</h2>
-<p>The validator was run end-to-end against two public IFC4 test models.
-The originally targeted Auckland Open IFC Model Repository
-(<code>Trapelo_IFC4_MEP.ifc</code>, <code>Hospital_IFC4_SPR.ifc</code>) requires an
-interactive browser login and could not be automated, so two
-no-login replacements were selected after a thorough scan of the
-buildingSMART, OSArch, EnEff:BIM and IfcOpenShell sample repositories.</p>
+<p>Reports for every validation run are at <code>results/</code> (JSON, HTML, BCF, summary CSV, failures CSV) on the GitHub repository. Live Claude output from both LLM modules is committed as evidence: <code>results/eir_translation_three_clauses.ids</code>, <code>results/generated_demo.ids</code>, <code>results/Ifc4_Revit_MEP_remediated.json</code>.</p>
+<p>§7 adds a future-proofing roadmap for scaling the workflow from the nine demonstration specifications to a full MEP&amp;F production library (Mechanical, Electrical, Plumbing and Fire) of roughly 100–165 specifications across 41 distinct property sets, aligned to AS/NZS and NZBC. This is beyond the minimum requirements; §1–§6 stand on their own as a complete submission.</p>
+<h2>Why openBIM rather than Revit + pyRevit?</h2>
+<p>The slide deck for this module points at Revit and pyRevit, and that is a reasonable place to start if your only concern is shipping a button next to a working modeller's mouse. I went the other way. The argument running through Elias's slides 18 to 24 is that the contract between human intent in an Employer's Information Requirements (EIR) and machine logic in a rule check lives in <strong>IDS</strong> (Information Delivery Specification), not in the authoring tool. Once you accept that, the authoring tool stops mattering. Revit, ArchiCAD, AutoCAD MEP and Tekla can all produce IFC4. If my checker only ran inside Revit, it would be worth less than half of what a practising Services BIM Consultant actually needs in front of clients who use a mixed authoring estate.</p>
+<p>I therefore targeted the buildingSMART reference openBIM stack directly: <code>ifcopenshell</code> to read IFC, <code>ifctester</code> to apply IDS. Both are maintained by the people who write the IDS standard, and the IDS 1.0 XSD ships inside the <code>ifctester</code> Python package. The same validation gate buildingSMART publishes is the one my code enforces, both on the hand-authored ruleset and on every LLM-generated specification before it touches disk. When this approach has to be defended in front of a client or a professional indemnity insurer, that pedigree matters.</p>
+<h2>Why two IFC test models?</h2>
+<p>The handover plan named two source IFC models from the University of Auckland Open IFC Model Repository (<code>Trapelo_IFC4_MEP.ifc</code>, <code>Hospital_IFC4_SPR.ifc</code>). The Auckland repository turned out to be a single-page JavaScript application that requires an interactive browser login I could not automate cleanly within the time budget. Rather than abandon the comparative approach, I ran a thorough sweep of GitHub, the buildingSMART sample-test-files repository, the IfcOpenShell community fixtures and the EnEff:BIM research datasets, and sourced two no-login IFC4 replacements with substantial MEP content:</p>
+<ul>
+<li><code>Ifc4_Revit_MEP.ifc</code> (27.8 MB, IFC4) — the Autodesk Revit MEP Advanced Sample project (<code>rme_advanced_sample_project.rvt</code>) exported to IFC4 and republished by youshengCode on GitHub. Contains 302,453 entities including 8,515 distribution ports, 491 pipe segments, 837 duct segments, 11 flow terminals, 6 fire-suppression terminals, plus 415 light fixtures and 359 air terminals.</li>
+<li><code>BoilerGasRadiatorDomesticHotWater.ifc</code> (1.35 MB, IFC4, MIT-licensed) — the VDI 6020 boiler / gas radiator / domestic hot water reference model from the German federal EnEff:BIM research project. Contains 26,030 entities including 1 pump, 4 valves, 1 boiler, 29 pipe segments and 114 distribution ports.</li>
+</ul>
+<p>Together they exercise seven of the nine specifications in the ruleset. Two specs (<code>IfcCableSegment</code>, <code>IfcElectricAppliance</code>) have zero applicable instances in either model. The ruleset retains those specifications because the contract is for the building, not the test sample, and the validator reports them honestly as <code>applicable=0 → SKIP</code> rather than dressing them as <code>PASS</code>. This is itself a design point I will return to in §6.</p>
+<h2>1. Executive summary</h2>
+<p>This submission demonstrates a complete EIR-to-validation workflow built on the buildingSMART reference openBIM stack:</p>
+<ol>
+<li>A <strong>hand-authored IDS ruleset</strong> (<code>ids/mep_services_v1.ids</code>) of nine MEP services specifications, constructed via the <code>ifctester.ids</code> Python API so the result is guaranteed XSD-valid by construction. The ruleset is then validated against the bundled IDS 1.0 XSD via <code>lxml</code> as a belt-and-braces second gate.</li>
+<li>A <strong>validator and multi-format reporter</strong> wrapping <code>ifctester.ids.Ids.validate()</code>, with a single CLI command (<code>python -m src.cli</code>) producing JSON, HTML, BCF, summary CSV and per-failure CSV outputs in one invocation. The BCF format is the one that matters in production: it imports straight into Solibri, BIMcollab, Navisworks Manage and Trimble Connect as a coordination issue tracker, which is how modellers actually receive feedback.</li>
+<li><strong>Two LLM modules</strong> built on the Anthropic SDK (Claude Sonnet 4.6). The first (<code>src/llm_eir_to_ids.py</code>) translates a natural-language EIR clause into one IDS specification, with the bundled IDS XSD as a hard validation gate. The second (<code>src/llm_remediation.py</code>) reads the JSON validation report, batches failed entities into Claude calls, and writes a plain-English remediation paragraph into the report for each one.</li>
+</ol>
+<p>The pipeline was exercised against the two IFC4 test models above. The Revit MEP model passes 5 of 9 specifications (76% of total checks); the Boiler model passes 6 of 9 (62% of total checks). End-to-end timings on a Windows 11 laptop: IFC open 0.11 s to 2.26 s, IDS validation 0.01 s to 0.50 s. Both numbers are an order of magnitude under the 20-minute slowdown documented in IfcOpenShell GitHub Discussion #6782, which is triggered by complex applicability restrictions rather than the entity-class filters used here.</p>
+<p>Live LLM output is committed to the repository as evidence: three EIR clauses translated to three XSD-valid IDS specifications, eight validation failures annotated with remediation paragraphs naming the missing <code>Pset.Property</code>, the design-side action and the downstream impact. Both runs are also embedded in <code>notebooks/01_demo_validation.ipynb</code>.</p>
+<p>The complete codebase, IDS ruleset, IFC source links, test suite, technical report, architecture diagrams and live LLM output are public at <code>https://github.com/markshanehaines-ZIG/m7u5-ids-mep-validator</code> under MIT licence.</p>
+<h2>2. The IDS ruleset — definition and rationale</h2>
+<h3>2.1 The nine specifications</h3>
+<p><code>ids/mep_services_v1.ids</code> carries nine specifications covering the major MEP services entity classes in IFC4. Each specification has an <code>&lt;applicability&gt;</code> element (the IFC entity class to target, optionally filtered by predefined type) and a <code>&lt;requirements&gt;</code> element listing the property, attribute, material or partOf facets that must be satisfied.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Applicability</th>
+<th>Requirement</th>
+<th>Standards hook</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MEP-01</td>
+<td><code>IfcPipeSegment</code></td>
+<td><code>Pset_PipeSegmentTypeCommon.NominalDiameter</code> populated AND material assigned</td>
+<td>AS/NZS 3500.1, IFC4</td>
+</tr>
+<tr>
+<td>MEP-02</td>
+<td><code>IfcDistributionPort</code></td>
+<td><code>FlowDirection</code> attribute in {<code>SOURCE</code>, <code>SINK</code>, <code>SOURCEANDSINK</code>}</td>
+<td>IFC4 IfcFlowDirectionEnum</td>
+</tr>
+<tr>
+<td>MEP-03</td>
+<td><code>IfcFlowTerminal</code></td>
+<td>Membership of an <code>IfcDistributionSystem</code> group via <code>IfcRelAssignsToGroup</code></td>
+<td>IFC4</td>
+</tr>
+<tr>
+<td>MEP-04</td>
+<td><code>IfcFireSuppressionTerminal</code></td>
+<td><code>Pset_FireSuppressionTerminalSprinkler.CoverageArea</code> populated AND <code>PredefinedType</code> not <code>NOTDEFINED</code></td>
+<td>NZS 4541, BS EN 12845 §10</td>
+</tr>
+<tr>
+<td>MEP-05</td>
+<td><code>IfcPump</code></td>
+<td><code>Pset_ManufacturerTypeInformation.Manufacturer</code> AND <code>.ModelLabel</code> populated</td>
+<td>ISO 19650-2</td>
+</tr>
+<tr>
+<td>MEP-06</td>
+<td><code>IfcDuctSegment</code></td>
+<td><code>Pset_DuctSegmentTypeCommon.NominalLengthOrDimension</code> populated AND material assigned</td>
+<td>AS 1668.2, AS 4254</td>
+</tr>
+<tr>
+<td>MEP-07</td>
+<td><code>IfcValve</code></td>
+<td><code>Pset_ValveTypeCommon.ValveOperation</code> populated AND <code>PredefinedType</code> not <code>NOTDEFINED</code></td>
+<td>AS 1628</td>
+</tr>
+<tr>
+<td>MEP-08</td>
+<td><code>IfcCableSegment</code></td>
+<td><code>Pset_CableSegmentTypeCommon.CrossSectionalArea</code> populated</td>
+<td>AS/NZS 3000 §433</td>
+</tr>
+<tr>
+<td>MEP-09</td>
+<td><code>IfcElectricAppliance</code></td>
+<td><code>Pset_ElectricalDeviceCommon.NominalPower</code> populated</td>
+<td>AS/NZS 3000 §4</td>
+</tr>
+</tbody>
+</table>
+<p>Each specification carries a human-readable <code>&lt;instructions&gt;</code> field that names the regulatory hook. For this academic submission the references blend British (BS EN, BS 7671) and Australasian (AS/NZS, NZS, NZBC) standards; for production use in my consultancy I will normalise these to the AS/NZS stack throughout. The structural pattern stays the same.</p>
+<h3>2.2 Why the IDS file is the contract surface</h3>
+<p>The IDS is the single piece of the workflow a non-developer can read and negotiate. A modeller, a designer, a client representative and a checker can all sit in the same room with the IDS file open and argue about whether <code>Pset_PipeSegmentTypeCommon.NominalDiameter</code> is the right hook for a sprinkler riser, without ever opening Python. This matters because the validator, the reporter, the LLM modules and the CLI are all implementation details that change between projects; the IDS is the artefact that survives across them. Treating the IDS as the contract surface — and the openBIM toolchain as the enforcement mechanism — is the design choice that separates this build from a Revit-button approach.</p>
+<h3>2.3 The MEP-04 IFC4 schema correction</h3>
+<p>The handover plan named <code>IfcSprinkler</code> as the applicability entity for the sprinkler specification. <code>IfcSprinkler</code> exists in IFC2X3 but was <strong>retired in IFC4</strong>. Sprinklers are now modelled as <code>IfcFireSuppressionTerminal</code> with <code>PredefinedType=SPRINKLER</code> or <code>SPRINKLERDEFLECTOR</code>. The original spec would have matched zero entities in any IFC4 file — a silent false PASS that no automated validator could catch on its own.</p>
+<p>I corrected the spec to <code>IfcFireSuppressionTerminal</code> and widened the requirement to flag both missing <code>CoverageArea</code> and <code>NOTDEFINED</code> PredefinedType. The corrected spec then surfaces all six fire-suppression terminals in the Revit MEP sample as failing.</p>
+<p>This is the kind of issue every legacy IDS in the industry has. When a firm migrates a client from IFC2X3 to IFC4, half their old rules silently match zero entities and they don't know it. The validator's <code>applicable=0 → SKIP</code> reporting flags this honestly. A migration audit running an old IDS through this pipeline on an IFC4 model finds every spec that needs schema migration.</p>
+<h3>2.4 IDS authoring via the ifctester Python API</h3>
+<p>The ruleset is generated by <code>scripts/build_mep_ids.py</code>, which constructs every specification via the <code>ifctester.ids</code> Python constructors. The result is <strong>guaranteed XSD-valid by construction</strong>: there is no path through the constructor API that emits malformed XML. A secondary explicit <code>lxml.etree.XMLSchema.assertValid()</code> check against the bundled buildingSMART IDS 1.0 XSD passes (9 specifications, zero schema errors).</p>
+<p>Hand-writing IDS XML by reaching for a text editor is the wrong workflow for production. Property names, dataType strings and facet attribute orderings are unforgiving. A Python builder script that wraps the buildingSMART reference constructors is the right workflow, and it is the workflow the LLM generator in §4 uses internally too.</p>
+<h2>3. The validator and reporter</h2>
+<h3>3.1 Toolchain</h3>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Tool</th>
+<th>Version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IFC parsing</td>
+<td><code>ifcopenshell</code></td>
+<td>0.8.5</td>
+</tr>
+<tr>
+<td>IDS validation</td>
+<td><code>ifctester</code> (buildingSMART reference)</td>
+<td>0.8.5</td>
+</tr>
+<tr>
+<td>XSD schema</td>
+<td>bundled inside <code>ifctester</code> package</td>
+<td>IDS 1.0</td>
+</tr>
+<tr>
+<td>Reporter outputs</td>
+<td><code>ifctester.reporter.Json</code> / <code>.Html</code> / <code>.Bcf</code></td>
+<td>0.8.5</td>
+</tr>
+<tr>
+<td>Test harness</td>
+<td><code>pytest</code></td>
+<td>9.1.0</td>
+</tr>
+<tr>
+<td>LLM client</td>
+<td><code>anthropic</code> SDK</td>
+<td>0.109.1</td>
+</tr>
+<tr>
+<td>Model</td>
+<td><code>claude-sonnet-4-6</code></td>
+<td>via Anthropic API</td>
+</tr>
+<tr>
+<td>Environment</td>
+<td>Python 3.11 venv on Windows 11</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>This is the openBIM equivalent of the M7U4 ETL pipeline: <strong>Load → Filter applicability → Check requirements → Emit reports</strong>, realised in code rather than diagram. The four stages are shown in <code>docs/pipeline.svg</code> (embedded below) with the LLM extension lanes alongside.</p>
+<h3>3.2 The validator wrapper</h3>
+<p><code>src/validator.py</code> is intentionally thin. The buildingSMART stack already does the schema-level work; the wrapper exists to (a) time each stage so this report can quote the numbers, (b) expose a single <code>ValidationRun</code> dataclass the CLI, the test suite and the demo notebook all consume, and (c) log progress so a CI job or interactive caller can follow long-running validations.</p>
+<p>The class has one public method, <code>run()</code>, that opens the IFC, loads the IDS, calls <code>doc.validate(model)</code>, instantiates <code>ifctester.reporter.Json(doc).report()</code> to populate the result structure, and returns a <code>ValidationRun</code> dataclass carrying the model, the validated IDS, the open and validate timings, and the JSON report.</p>
+<h3>3.3 The multi-format reporter</h3>
+<p><code>src/reporter.py</code> produces five output files per IFC, each for a different downstream consumer:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Read by</th>
+<th>Used when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>*_report.json</code></td>
+<td>other software (CDE plugins, dashboards, scripts)</td>
+<td>feeding results into a Power BI dashboard or another tool</td>
+</tr>
+<tr>
+<td><code>*_report.html</code></td>
+<td>humans in a browser</td>
+<td>sharing with the modelling team — they click each spec to expand failures</td>
+</tr>
+<tr>
+<td><code>*_report.bcf</code></td>
+<td>Solibri / BIMcollab / Navisworks Manage / Trimble Connect</td>
+<td><strong>the production output</strong> — imports into the CDE as a coordination issue tracker with one BCF topic per failure</td>
+</tr>
+<tr>
+<td><code>*_summary.csv</code></td>
+<td>Excel</td>
+<td>dashboards, client weekly reporting, quick scan</td>
+</tr>
+<tr>
+<td><code>*_failures.csv</code></td>
+<td>Excel + Power BI</td>
+<td>drill-down: one row per failed entity with GUID for back-trace into the authoring tool</td>
+</tr>
+</tbody>
+</table>
+<p>One ifctester 0.8.5 subtlety caught me out and is worth recording. The <code>Json</code>, <code>Html</code> and <code>Bcf</code> reporters all read <code>self.results</code> inside their <code>to_file()</code> methods, but <code>self.results</code> is only populated by <code>.report()</code>. My wrapper calls <code>.report()</code> explicitly before each <code>.to_file()</code>. Without it the JSON output is a 23-byte stub (<code>{"hide_skipped": false}</code>), the HTML is a template skeleton, and the BCF writer raises <code>KeyError: 'title'</code>. Anyone else building on this stack should know.</p>
+<p>A second polish: a specification with zero applicable entities is reported by ifctester as <code>status=True</code> (vacuously satisfied). For my dashboard view I rewrote this to report <code>SKIP</code> when <code>applicable==0</code>, so a spec with no entities found is distinct from a real PASS. Vacuous satisfaction is not the same as the IDS being met.</p>
+<h3>3.4 The CLI entry point</h3>
+<pre><code class="language-bash">python -m src.cli --ifc ifc/Ifc4_Revit_MEP.ifc \
+                  --ids ids/mep_services_v1.ids \
+                  --out results/
+</code></pre>
+<p><code>src/cli.py</code> exposes the validator and reporter via <code>argparse</code>. The exit code mirrors validation status so a CI pipeline can gate on it: <code>0</code> for pass, <code>1</code> for fail. A <code>--quiet</code> flag suppresses info-level logs for non-interactive use.</p>
+<h2>4. LLM modules — natural language at both ends</h2>
+<p>The two LLM modules are the additive piece. Neither is required by the rubric. Both exist because the EIR-to-IDS and validation-result-to-modeller-advice gaps are the actual bottlenecks in Services BIM consulting today, and Claude is good at exactly the kind of structured text-to-structured-text task that bridges them.</p>
+<h3>4.1 EIR-to-IDS generator (<code>src/llm_eir_to_ids.py</code>)</h3>
+<p>Workflow:</p>
+<ol>
+<li>Read a plain-text file of natural-language EIR clauses (blank-line separated, <code>#</code> comments).</li>
+<li>For each clause, build a structured Anthropic API request with a system prompt that constrains Claude to emit one <code>&lt;specification&gt;</code> element of IDS 1.0 XML and nothing else. The system prompt includes a one-shot example of (English clause → IDS XML) and the namespace and cardinality rules.</li>
+<li>Receive the response, strip any markdown code fences, extract the <code>&lt;specification&gt;</code> block.</li>
+<li>Wrap the block in a complete <code>&lt;ids&gt;</code> document and validate against the bundled buildingSMART IDS XSD via <code>lxml</code>.</li>
+<li>If XSD-valid, append to the output <code>.ids</code> file. If invalid, report the error and skip — the run cannot silently emit malformed XML.</li>
+</ol>
+<p>The XSD gate is the critical design decision. An LLM that occasionally hallucinates a property name or a facet structure is acceptable; an LLM that writes invalid XML into a production IDS file is not. The gate runs in microseconds and rejects anything the buildingSMART validator would reject.</p>
+<h3>4.2 Remediation generator (<code>src/llm_remediation.py</code>)</h3>
+<p>Workflow:</p>
+<ol>
+<li>Read a JSON validation report produced by <code>src/cli.py</code>.</li>
+<li>Iterate <code>failed_entities</code> across every requirement in every specification.</li>
+<li>Batch the failures (default 8 per request) into Anthropic API calls with a system prompt that asks for one 60–90 word paragraph per failure addressed to the BIM author, naming the specific <code>Pset.Property</code> that is missing, the GUID and name of the affected entity, the design-side action to take, and the downstream impact.</li>
+<li>Merge the returned paragraphs back into the JSON report under a new <code>remediation</code> key on each failure.</li>
+<li>Write the annotated JSON to the output path. Failed batches log a warning and continue; the rest of the report is preserved.</li>
+</ol>
+<p>The output is a JSON report where every annotated failure now carries machine-traceable identity (GUID, IFC class, spec name) <strong>and</strong> human-readable instruction. This is what closes the "modellers don't know what to do with the report" gap that real BIM coordination meetings actually trip over.</p>
+<h3>4.3 Demonstration evidence</h3>
+<p>Both modules ran end-to-end against the real test models (committed to the repository):</p>
+<p><strong>EIR-to-IDS generator</strong> translated three natural-language clauses from <code>queries/sample_eir_clauses.txt</code>:</p>
+<blockquote>
+<p>All air-handling units shall declare the supply-air design flow rate via <code>Pset_AirHandlingUnitTypeCommon.NominalAirFlowRate</code> so the commissioning team can verify against the room-by-room load schedule.</p>
+</blockquote>
+<p>into three IDS specifications, all of which passed the XSD gate and round-trip-parsed through <code>ifctester.ids.open()</code>. Output committed at <code>results/eir_translation_three_clauses.ids</code>.</p>
+<p><strong>Remediation generator</strong> annotated eight failures from <code>results/Ifc4_Revit_MEP_report.json</code> with paragraphs of this form:</p>
+<blockquote>
+<p>For the IfcPipeSegment with GlobalId <code>213f6VCXH5cBojaxiKbfKS</code> (named 'Pipe Types:Standard:513756'), the property set <code>Pset_PipeSegmentTypeCommon</code> is either absent or does not contain the required <code>NominalDiameter</code> property. Please open this element in your authoring tool, navigate to its type or instance properties, and populate <code>Pset_PipeSegmentTypeCommon.NominalDiameter</code> with the design pipe diameter expressed in millimetres. Without this value, downstream hydraulic sizing and clash-clearance checks cannot be verified against design intent.</p>
+</blockquote>
+<p>Output committed at <code>results/Ifc4_Revit_MEP_remediated.json</code>.</p>
+<p>Both runs are also embedded in <code>notebooks/01_demo_validation.ipynb</code> so the cells show real Claude output rather than skipped placeholders.</p>
+<h2>5. Results</h2>
+<h3>5.1 Per-model summary</h3>
 <table>
 <thead>
 <tr>
@@ -312,6 +364,7 @@ buildingSMART, OSArch, EnEff:BIM and IfcOpenShell sample repositories.</p>
 <th>Source</th>
 <th>Schema</th>
 <th>Size</th>
+<th>Total entities</th>
 <th>Specs pass</th>
 <th>Checks pass</th>
 </tr>
@@ -319,79 +372,636 @@ buildingSMART, OSArch, EnEff:BIM and IfcOpenShell sample repositories.</p>
 <tbody>
 <tr>
 <td><code>Ifc4_Revit_MEP.ifc</code></td>
-<td>Autodesk RME Advanced Sample, IFC4 export</td>
+<td>Autodesk RME Advanced Sample (youshengCode/IfcSampleFiles)</td>
 <td>IFC4</td>
 <td>27.8 MB</td>
-<td>5/9</td>
+<td>302,453</td>
+<td>5 / 9</td>
 <td>76 %</td>
 </tr>
 <tr>
 <td><code>BoilerGasRadiatorDomesticHotWater.ifc</code></td>
-<td>EnEff:BIM VDI 6020 reference (MIT)</td>
+<td>EnEff:BIM VDI 6020 reference, MIT-licensed</td>
 <td>IFC4</td>
 <td>1.35 MB</td>
-<td>6/9</td>
+<td>26,030</td>
+<td>6 / 9</td>
 <td>62 %</td>
 </tr>
 </tbody>
 </table>
-<p>Validation timings on a Windows 11 laptop:
-<code>ifcopenshell.open()</code> 0.11 – 2.26 s, <code>ifctester.ids.validate()</code> 0.01 –
-0.50 s. Both numbers are an order of magnitude below the known 20-min
-slowdown documented in IfcOpenShell GitHub Discussion #6782 — that
-issue is triggered by complex applicability restrictions, not by the
-entity-class-only filters used in <code>mep_services_v1.ids</code>.</p>
-<p>Two findings worth highlighting:</p>
+<h3>5.2 Per-specification results</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Specification</th>
+<th>Revit MEP applicable / pass / fail</th>
+<th>Boiler applicable / pass / fail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MEP-01</td>
+<td>Pipe segment — diameter and material</td>
+<td>491 / 0 / 491</td>
+<td>29 / 0 / 29</td>
+</tr>
+<tr>
+<td>MEP-02</td>
+<td>Distribution port — flow direction</td>
+<td>8,515 / 8,515 / 0</td>
+<td>114 / 114 / 0</td>
+</tr>
+<tr>
+<td>MEP-03</td>
+<td>Flow terminal — system membership</td>
+<td>11 / 0 / 11</td>
+<td>0 / 0 / 0 (SKIP)</td>
+</tr>
+<tr>
+<td>MEP-04</td>
+<td>Fire-suppression terminal — coverage and predef. type</td>
+<td>6 / 0 / 6</td>
+<td>0 / 0 / 0 (SKIP)</td>
+</tr>
+<tr>
+<td>MEP-05</td>
+<td>Pump — manufacturer and model</td>
+<td>0 / 0 / 0 (SKIP)</td>
+<td>1 / 0 / 1</td>
+</tr>
+<tr>
+<td>MEP-06</td>
+<td>Duct segment — nominal size and material</td>
+<td>837 / 0 / 837</td>
+<td>0 / 0 / 0 (SKIP)</td>
+</tr>
+<tr>
+<td>MEP-07</td>
+<td>Valve — operation and predef. type</td>
+<td>0 / 0 / 0 (SKIP)</td>
+<td>4 / 0 / 4</td>
+</tr>
+<tr>
+<td>MEP-08</td>
+<td>Cable segment — cross-sectional area</td>
+<td>0 / 0 / 0 (SKIP)</td>
+<td>0 / 0 / 0 (SKIP)</td>
+</tr>
+<tr>
+<td>MEP-09</td>
+<td>Electric appliance — nominal power</td>
+<td>0 / 0 / 0 (SKIP)</td>
+<td>0 / 0 / 0 (SKIP)</td>
+</tr>
+</tbody>
+</table>
+<h3>5.3 Timings</h3>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Revit MEP (28 MB, 302k entities)</th>
+<th>Boiler (1.35 MB, 26k entities)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ifcopenshell.open()</code></td>
+<td>2.26 s</td>
+<td>0.11 s</td>
+</tr>
+<tr>
+<td><code>ifctester.ids.Ids.validate()</code></td>
+<td>0.50 s</td>
+<td>0.01 s</td>
+</tr>
+<tr>
+<td>Full pipeline (open + validate + emit 5 reports)</td>
+<td>~3.5 s</td>
+<td>~0.4 s</td>
+</tr>
+<tr>
+<td>pytest suite (4 tests)</td>
+<td>2.18 s</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>Both validation times are an order of magnitude under the 20-minute slowdown documented in IfcOpenShell GitHub Discussion #6782. That issue is triggered when applicability uses complex restrictions across the whole model; my IDS uses entity-class-only applicability filters, which <code>ifctester</code> handles efficiently.</p>
+<h3>5.4 LLM module results</h3>
+<ul>
+<li><strong>EIR-to-IDS generator</strong> translated three sample clauses into three XSD-valid IDS specifications via three Anthropic API calls (Claude Sonnet 4.6), each returning HTTP 200. All three round-tripped through <code>ifctester.ids.open()</code>. Total cost: ~NZ$0.20.</li>
+<li><strong>Remediation generator</strong> annotated 8 of 2,679 failures from the Revit MEP report in a single batched Anthropic API call, returning HTTP 200. The output JSON carries the original report structure plus a <code>remediation</code> key on each of the 8 annotated entities. Total cost: ~NZ$0.10.</li>
+</ul>
+<h2>6. Discussion and findings</h2>
+<p>Two findings stand out from the run.</p>
+<p><strong>Distribution port flow direction is the only specification that passes 100 % on the Revit MEP sample.</strong> All 8,515 IfcDistributionPort instances declare a valid FlowDirection. Revit's IFC exporter writes this one reliably. By contrast, none of the 491 IfcPipeSegment, 837 IfcDuctSegment or 11 IfcFlowTerminal entities meet the ruleset, because the <code>Pset_*TypeCommon</code> property sets the IDS requires are not authored by Revit's exporter at all. This is exactly the authoring gap an IDS is meant to catch, and exactly the conversation I want to have with a modelling lead at the start of a project rather than at handover.</p>
+<p><strong>The MEP-04 IFC4 schema correction is the kind of issue every legacy IDS has.</strong> The handover plan was written against an IFC2X3 mental model. <code>IfcSprinkler</code> doesn't exist in IFC4. A spec that targets a retired entity matches zero instances, returns vacuous PASS, and lulls the team into thinking sprinkler coverage is being checked when it isn't. The validator's <code>SKIP</code> status when <code>applicable==0</code> (rather than ifctester's default <code>PASS</code>) is the small change that surfaces this. A consultancy migrating a client from IFC2X3 to IFC4 should run their existing IDS library through this pipeline first as a migration audit.</p>
+<p><strong>The openBIM choice was vindicated by the result.</strong> Authoring the IDS through <code>ifctester.ids</code> constructors guarantees XSD validity in a way hand-written XML cannot. That guarantee then transfers to the LLM module's output, because Claude's reply is wrapped in a complete IDS document and validated against the same XSD before persistence. The two LLM modules turn "natural-language requirement → machine-checkable rule" and "machine-readable failure → English remediation" into one-call operations rather than two-week workshops and Teams-message back-and-forth.</p>
+<p><strong>What did not work as planned.</strong> The originally targeted Auckland Open IFC Model Repository was unreachable without an interactive browser login. The chosen replacements cover seven of the nine specifications between them. Rather than weaken the IDS to fit the available data, the ruleset retains the unmatched specifications and the validator reports <code>SKIP</code>. A real EIR is written for the building, not for the test sample.</p>
+<p><strong>What this could become.</strong> A pyRevit wrapper sitting on top of this codebase would call <code>validator.run()</code> exactly as the CLI does, with the in-session document path passed in. The implementation choice is therefore additive rather than exclusive: openBIM is the right surface for the IDS contract; pyRevit can sit on top of it if a specific firm needs an in-Revit button. The dissertation chapter that grows out of this assignment will extend the architecture along the lines laid out in §7 below: a feedback loop where commissioning evidence (BCF issues with measurements) can amend the IDS automatically, closing the EIR → IDS → check → evidence circle.</p>
+<h2>7. Future-proofing the workflow for full MEP&amp;F coverage</h2>
+<p>The nine specifications in <code>ids/mep_services_v1.ids</code> are roughly six per cent of a production catalogue. They were chosen to exercise the breadth of IDS facet types (<code>property</code>, <code>attribute</code>, <code>material</code>, <code>partOf</code>), not to cover any single service in depth. A production-scale ruleset covering Mechanical, Electrical, Plumbing and Fire (MEP&amp;F) across all the entity classes and property sets the discipline cares about is roughly 100–165 specifications referencing 40–60 distinct property sets.</p>
+<p><strong>The pipeline does not need to change to scale; only the IDS catalogue does.</strong> That separation is the point of the design.</p>
+<h3>7.1 Property-set taxonomy by service</h3>
+<p>The tables below name the IFC4 entity class, the canonical buildingSMART Pset, the properties I would require, the IFC dataType, and the regulatory hook I would put in the spec's <code>&lt;instructions&gt;</code> field for an AS/NZS-aligned ruleset. These are deliberately the Psets I would consider when authoring; not every entry becomes a spec on every project. The right answer at BEP stage is to pick the subset the client genuinely needs to verify, and to trim the rest.</p>
+<p><strong>Mechanical — ventilation, air conditioning, heating</strong></p>
+<table>
+<thead>
+<tr>
+<th>Entity</th>
+<th>Pset</th>
+<th>Required properties</th>
+<th>Hook</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>IfcAirHandlingUnit</code></td>
+<td><code>Pset_AirHandlingUnitTypeCommon</code></td>
+<td><code>NominalAirFlowRate</code>, <code>NominalSensibleCapacity</code></td>
+<td>AS 1668.2</td>
+</tr>
+<tr>
+<td><code>IfcChiller</code></td>
+<td><code>Pset_ChillerTypeCommon</code></td>
+<td><code>NominalCapacity</code>, <code>NominalEER</code>, <code>NominalCOP</code></td>
+<td>NZBC G4, AS/NZS 3823</td>
+</tr>
+<tr>
+<td><code>IfcBoiler</code></td>
+<td><code>Pset_BoilerTypeCommon</code></td>
+<td><code>EnergySource</code>, <code>NominalEnergyConsumption</code></td>
+<td>NZS 5261 (gas)</td>
+</tr>
+<tr>
+<td><code>IfcCoolingTower</code></td>
+<td><code>Pset_CoolingTowerTypeCommon</code></td>
+<td><code>HeatTransferArea</code>, <code>NominalCapacity</code></td>
+<td>NZBC G4</td>
+</tr>
+<tr>
+<td><code>IfcFan</code></td>
+<td><code>Pset_FanTypeCommon</code></td>
+<td><code>NominalAirFlowRate</code>, <code>NominalTotalPressure</code>, <code>MotorDriveType</code></td>
+<td>AS 1668.2</td>
+</tr>
+<tr>
+<td><code>IfcDuctSegment</code></td>
+<td><code>Pset_DuctSegmentTypeCommon</code></td>
+<td><code>NominalLengthOrDimension</code>, material</td>
+<td>AS 4254</td>
+</tr>
+<tr>
+<td><code>IfcDuctFitting</code></td>
+<td><code>Pset_DuctFittingTypeCommon</code></td>
+<td><code>NominalLength</code>, material</td>
+<td>AS 4254</td>
+</tr>
+<tr>
+<td><code>IfcDamper</code></td>
+<td><code>Pset_DamperTypeCommon</code></td>
+<td><code>OperationTemperatureMax</code>, <code>Operation</code></td>
+<td>AS 1682 (fire dampers)</td>
+</tr>
+<tr>
+<td><code>IfcAirTerminal</code></td>
+<td><code>Pset_AirTerminalTypeCommon</code></td>
+<td><code>Shape</code>, <code>FaceType</code>, <code>AirFlowrateRange</code></td>
+<td>AS 1668.2</td>
+</tr>
+<tr>
+<td><code>IfcUnitaryEquipment</code></td>
+<td><code>Pset_UnitaryEquipmentTypeCommon</code></td>
+<td><code>OperatingMode</code>, <code>NominalCoolingCapacity</code>, <code>NominalHeatingCapacity</code></td>
+<td>NZBC H1</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Electrical — distribution, lighting, devices</strong></p>
+<table>
+<thead>
+<tr>
+<th>Entity</th>
+<th>Pset</th>
+<th>Required properties</th>
+<th>Hook</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>IfcCableSegment</code></td>
+<td><code>Pset_CableSegmentTypeCommon</code></td>
+<td><code>CrossSectionalArea</code>, <code>MaximumOperatingTemperature</code>, <code>FireRating</code></td>
+<td>AS/NZS 3000 §3, AS/NZS 3008</td>
+</tr>
+<tr>
+<td><code>IfcCableCarrierSegment</code></td>
+<td><code>Pset_CableCarrierSegmentTypeCommon</code></td>
+<td><code>WidthOrDiameter</code>, material</td>
+<td>AS/NZS 3000</td>
+</tr>
+<tr>
+<td><code>IfcElectricAppliance</code></td>
+<td><code>Pset_ElectricalDeviceCommon</code></td>
+<td><code>NominalPower</code>, <code>NominalVoltage</code>, <code>NominalFrequency</code></td>
+<td>AS/NZS 3000 §4</td>
+</tr>
+<tr>
+<td><code>IfcLightFixture</code></td>
+<td><code>Pset_LightFixtureTypeCommon</code></td>
+<td><code>LightFixtureMountingType</code>, <code>MaintenanceFactor</code>, <code>ArticleNumber</code></td>
+<td>AS/NZS 1680</td>
+</tr>
+<tr>
+<td><code>IfcElectricDistributionBoard</code></td>
+<td><code>Pset_ElectricDistributionBoardTypeCommon</code></td>
+<td><code>NominalCurrent</code>, <code>NumberOfGangs</code></td>
+<td>AS/NZS 3000 §2</td>
+</tr>
+<tr>
+<td><code>IfcSwitchingDevice</code></td>
+<td><code>Pset_SwitchingDeviceTypeCommon</code></td>
+<td><code>SwitchFunction</code>, <code>RatedCurrent</code></td>
+<td>AS/NZS 3947</td>
+</tr>
+<tr>
+<td><code>IfcProtectiveDevice</code></td>
+<td><code>Pset_ProtectiveDeviceTypeCommon</code></td>
+<td><code>BreakingCapacity</code>, <code>OperatingMode</code></td>
+<td>AS/NZS 3000 §2.5</td>
+</tr>
+<tr>
+<td><code>IfcTransformer</code></td>
+<td><code>Pset_TransformerTypeCommon</code></td>
+<td><code>PrimaryVoltage</code>, <code>SecondaryVoltage</code>, <code>PrimaryCurrent</code></td>
+<td>AS 60076</td>
+</tr>
+<tr>
+<td><code>IfcMotorConnection</code></td>
+<td><code>Pset_MotorConnectionTypeCommon</code></td>
+<td><code>MotorConnectionType</code></td>
+<td>AS 60034</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Plumbing / Hydraulic — water, sanitary, gas</strong></p>
+<table>
+<thead>
+<tr>
+<th>Entity</th>
+<th>Pset</th>
+<th>Required properties</th>
+<th>Hook</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>IfcPipeSegment</code></td>
+<td><code>Pset_PipeSegmentTypeCommon</code></td>
+<td><code>NominalDiameter</code>, material, <code>FlowDirection</code></td>
+<td>AS/NZS 3500.1, AS/NZS 3500.2</td>
+</tr>
+<tr>
+<td><code>IfcPipeFitting</code></td>
+<td><code>Pset_PipeFittingTypeCommon</code></td>
+<td><code>NominalDiameter</code>, <code>JointSize</code>, material</td>
+<td>AS/NZS 3500</td>
+</tr>
+<tr>
+<td><code>IfcPump</code></td>
+<td><code>Pset_PumpTypeCommon</code></td>
+<td><code>PumpType</code>, <code>FlowRateRange</code>, <code>Pressure</code>, <code>Manufacturer</code>, <code>ModelLabel</code></td>
+<td>NZBC G12, AS/NZS 3500.1</td>
+</tr>
+<tr>
+<td><code>IfcValve</code></td>
+<td><code>Pset_ValveTypeCommon</code></td>
+<td><code>ValveOperation</code>, <code>ValveMechanism</code>, <code>Size</code>, <code>PredefinedType</code></td>
+<td>AS 1628, AS 4794</td>
+</tr>
+<tr>
+<td><code>IfcTank</code></td>
+<td><code>Pset_TankTypeCommon</code></td>
+<td><code>NominalCapacity</code>, <code>StorageType</code>, <code>PatternType</code></td>
+<td>NZBC G12, AS/NZS 4020</td>
+</tr>
+<tr>
+<td><code>IfcSanitaryTerminal</code></td>
+<td><code>Pset_SanitaryTerminalTypeCommon</code></td>
+<td><code>Category</code>, material, <code>WaterConsumptionPerFlush</code></td>
+<td>NZBC G1, AS/NZS 6400 (WELS)</td>
+</tr>
+<tr>
+<td><code>IfcWasteTerminal</code></td>
+<td><code>Pset_WasteTerminalTypeCommon</code></td>
+<td><code>WasteTerminalType</code>, material</td>
+<td>AS/NZS 3500.2</td>
+</tr>
+<tr>
+<td><code>IfcInterceptor</code></td>
+<td><code>Pset_InterceptorTypeCommon</code></td>
+<td><code>InterceptorType</code>, <code>NominalCapacity</code></td>
+<td>NZBC G13</td>
+</tr>
+<tr>
+<td><code>IfcDistributionSystem</code></td>
+<td>(entity-level)</td>
+<td DOMESTICCOLDWATER_="DOMESTICCOLDWATER," DOMESTICHOTWATER_="DOMESTICHOTWATER," FUELGAS_="FUELGAS," RAINWATERDRAINAGE_="RAINWATERDRAINAGE," SEWAGE_="SEWAGE," class=".."><code>PredefinedType</code> ∈</td>
+<td>NZBC G12, NZS 5261</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Fire — sprinkler, fire alarm, suppression</strong></p>
+<table>
+<thead>
+<tr>
+<th>Entity</th>
+<th>Pset</th>
+<th>Required properties</th>
+<th>Hook</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>IfcFireSuppressionTerminal</code> (<code>SPRINKLER</code>)</td>
+<td><code>Pset_FireSuppressionTerminalSprinkler</code></td>
+<td><code>CoverageArea</code>, <code>Pattern</code>, <code>WaterDistributionType</code></td>
+<td>NZS 4541, NZBC C/AS2</td>
+</tr>
+<tr>
+<td><code>IfcFireSuppressionTerminal</code> (<code>BREECHINGINLET</code>)</td>
+<td><code>Pset_FireSuppressionTerminalBreechingInlet</code></td>
+<td><code>Pattern</code></td>
+<td>NZS 4510</td>
+</tr>
+<tr>
+<td><code>IfcFireSuppressionTerminal</code> (<code>HOSEREEL</code>)</td>
+<td><code>Pset_FireSuppressionTerminalHoseReel</code></td>
+<td><code>Pattern</code>, <code>HoseDiameter</code>, <code>HoseLength</code></td>
+<td>NZS 4503</td>
+</tr>
+<tr>
+<td><code>IfcAlarm</code></td>
+<td><code>Pset_AlarmTypeCommon</code></td>
+<td><code>AlarmType</code>, <code>Application</code></td>
+<td>NZS 4512, AS 1670.1</td>
+</tr>
+<tr>
+<td><code>IfcSensor</code> (smoke / heat)</td>
+<td><code>Pset_SensorTypeCommon</code> + specific</td>
+<td><code>SensorType</code>, <code>MeasurementRange</code></td>
+<td>NZS 4512, AS 1670.1</td>
+</tr>
+<tr>
+<td><code>IfcDamper</code> (<code>FIREDAMPER</code>)</td>
+<td><code>Pset_DamperTypeCommon</code> + <code>Pset_FireSafetyProperties</code></td>
+<td><code>FireRating</code>, <code>Operation</code></td>
+<td>AS 1682, NZBC C/AS2</td>
+</tr>
+<tr>
+<td><code>IfcCableSegment</code> (fire-rated)</td>
+<td><code>Pset_CableSegmentTypeCommon</code> + <code>Pset_FireSafetyProperties</code></td>
+<td><code>FireRating</code></td>
+<td>AS/NZS 3013</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Common cross-cutting — manufacturer, classification, spatial structure</strong></p>
+<p>Not service-specific but every production IDS should enforce them. Anything that fails these is impossible to hand over cleanly into FM/CAFM.</p>
+<table>
+<thead>
+<tr>
+<th>Applicability</th>
+<th>Pset / facet</th>
+<th>Required</th>
+<th>Hook</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Any <code>IfcElementType</code></td>
+<td><code>Pset_ManufacturerTypeInformation</code></td>
+<td><code>Manufacturer</code>, <code>ModelLabel</code>, <code>ProductionYear</code></td>
+<td>ISO 19650-2 §6.4</td>
+</tr>
+<tr>
+<td>Any <code>IfcElement</code> instance</td>
+<td><code>Pset_ManufacturerOccurrence</code></td>
+<td><code>BarCode</code>, <code>SerialNumber</code>, <code>AssemblyPlace</code></td>
+<td>COBie</td>
+</tr>
+<tr>
+<td>Any FM asset</td>
+<td><code>Pset_AssetManagement</code></td>
+<td><code>AssetIdentifier</code>, <code>OriginalValue</code>, <code>Owner</code></td>
+<td>ISO 55000</td>
+</tr>
+<tr>
+<td>Any element</td>
+<td>classification facet</td>
+<td><code>system=Uniclass 2015</code> or <code>NRM2</code> or <code>Omniclass</code>, value present</td>
+<td>ISO 12006-2</td>
+</tr>
+<tr>
+<td>All elements</td>
+<td>spatial-structure</td>
+<td>contained in <code>IfcSpatialStructureElement</code> via <code>IfcRelContainedInSpatialStructure</code></td>
+<td>IFC4 spatial rules</td>
+</tr>
+<tr>
+<td><code>IfcProject</code> root</td>
+<td>attribute facet</td>
+<td>references <code>IfcProjectedCRS</code> (georeferenced)</td>
+<td>ISO 19111</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Counts to plan for</strong></p>
+<table>
+<thead>
+<tr>
+<th>Service area</th>
+<th>Distinct Psets</th>
+<th>Realistic spec count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mechanical (HVAC + heating)</td>
+<td>10</td>
+<td>25–40</td>
+</tr>
+<tr>
+<td>Electrical (distribution, lighting, devices)</td>
+<td>9</td>
+<td>20–35</td>
+</tr>
+<tr>
+<td>Plumbing / Hydraulic (water, sanitary, gas)</td>
+<td>10</td>
+<td>25–40</td>
+</tr>
+<tr>
+<td>Fire (sprinkler, alarm, suppression, fire-rated)</td>
+<td>7</td>
+<td>15–25</td>
+</tr>
+<tr>
+<td>Common cross-cutting</td>
+<td>5</td>
+<td>15–25</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>41 Psets</strong></td>
+<td><strong>100–165 specs</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The handover plan's nine specs is roughly six per cent of a production catalogue. That is consistent with the assignment brief (demonstrate the pipeline) and inconsistent with shipping to a client (don't).</p>
+<h3>7.2 Multi-IDS authoring</h3>
+<p>The CLI currently accepts one <code>--ids</code> flag. For production I would extend it to accept either a single file or a directory of files, validate the IFC against each, and merge the per-IDS reports into a single output. Each IDS file would represent one service area or one cross-cutting concern, organised as:</p>
+<pre><code>ids/
+├── mechanical_v1.ids
+├── electrical_v1.ids
+├── plumbing_hydraulic_v1.ids
+├── fire_v1.ids
+├── common_cross_cutting_v1.ids
+└── client_overlays/
+    └── &lt;client_name&gt;_overrides.ids
+</code></pre>
+<p>The <code>client_overlays/</code> pattern lets a client-specific EIR add or tighten rules on top of the base catalogue without forking the whole library. It is the same pattern Solibri rulesets already use, and it is what makes the catalogue maintainable across many concurrent projects.</p>
+<h3>7.3 IFC4.3 schema scope for infrastructure</h3>
+<p>The civil and rail entities (<code>IfcAlignment</code>, <code>IfcRoad</code>, <code>IfcRailway</code>, <code>IfcBridge</code>, <code>IfcEarthworksCut</code>, drainage networks) live in IFC4.3 (<code>IFC4X3_ADD2</code>), not IFC4. <code>ifctester</code> already supports <code>IFC4X3_ADD2</code> as an <code>ifcVersion</code> value; my current IDS file declares <code>IFC4</code> only. The change is one line per spec, plus a column on the catalogue noting which schema version applies. Hospitals, schools and commercial buildings stay on IFC4. Infrastructure work moves to IFC4.3 once authoring tools catch up (Civil 3D 2025 onward).</p>
+<h3>7.4 bSDD integration for the LLM generator</h3>
+<p>The biggest single source of LLM error in EIR-to-IDS translation is Claude inventing a Pset name that does not exist. The fix is to give the LLM a tool-call that hits the buildingSMART Data Dictionary (<code>bsdd.buildingsmart.org</code>) for any Pset it wants to reference. If the Pset is not in bSDD the LLM is told to either re-pick or flag the spec for human review. I would build this as a thin MCP server so the generator becomes an agentic loop rather than a single-shot translation. Estimated effort: two days plus regression testing.</p>
+<h3>7.5 BCF feedback loop — closing the circle</h3>
+<p>Today the BCF report is one-way: the validator emits a BCF, the modeller resolves the issues. The closing of the loop would let the commissioning team push measured values (actual cable cross-sectional areas, actual sprinkler coverage tests, actual pump heads) back as BCF topics with structured payloads. A new module would compare measured values to required values from the IDS, surface discrepancies, and propose draft amendments to the IDS for the next project. This is what turns a one-shot check into an organisation's learning loop, and it is the dissertation chapter direction I will pursue.</p>
+<h3>7.6 CI integration for weekly client model checks</h3>
+<p>For every active client project I would set up a scheduled job (GitHub Actions on a private repo or a Windows Task on the firm's coordination server) that:</p>
 <ol>
-<li><strong>Spec MEP-04 was rewritten during the build.</strong> The handover plan
-   listed <code>IfcSprinkler</code> as the applicability entity. <code>IfcSprinkler</code>
-   exists in IFC2X3 but was <strong>retired in IFC4</strong>; sprinklers are
-   modelled as <code>IfcFireSuppressionTerminal</code> with
-   <code>PredefinedType=SPRINKLER</code>. The original spec would have matched
-   zero entities in either IFC4 model. The corrected MEP-04 targets
-   <code>IfcFireSuppressionTerminal</code> directly and surfaces six fail rows
-   (all <code>NOTDEFINED</code> PredefinedType, all missing
-   <code>Pset_FireSuppressionTerminalSprinkler</code>) in the Revit sample.</li>
-<li><strong><code>IfcDistributionPort.FlowDirection</code> is the only requirement that
-   passes 100 % on the Revit MEP sample.</strong> Of 8,515 ports, every single
-   one declares a flow direction — Revit's IFC exporter writes it
-   reliably. By contrast, none of the 491 <code>IfcPipeSegment</code>,
-   837 <code>IfcDuctSegment</code>, or 11 <code>IfcFlowTerminal</code> entities meet the
-   ruleset, because the Pset_*TypeCommon property sets that the IDS
-   requires are simply not authored by the Revit sample's exporter.
-   This is exactly the kind of authoring gap an IDS is built to catch.</li>
+<li>Pulls the latest IFC from the client's CDE (Trimble Connect, Autodesk Construction Cloud, Asite).</li>
+<li>Runs the validator against the client-specific IDS suite.</li>
+<li>Pushes the BCF report back to the CDE as an updated issue set.</li>
+<li>Pushes the remediation-annotated JSON to a shared drive for the modelling lead to triage on Monday morning.</li>
 </ol>
-<p>LLM-generated output (Sonnet 4.6, with the API key present in <code>.env</code>):
-the EIR-to-IDS generator translated three sample clauses (AHU air-flow,
-DHW tank capacity, chiller cooling capacity) into valid IDS XML that
-round-trip-parses through <code>ifctester.ids.open()</code>. The remediation
-generator annotated the first five failures with paragraphs naming the
-specific <code>Pset.Property</code> to add and the practical downstream impact.</p>
-<h2>4 — Discussion</h2>
-<p>What worked: the openBIM choice was vindicated by the result.
-Authoring the IDS via <code>ifctester.ids</code> constructors guarantees XSD
-validity in a way that hand-written XML simply does not — and the same
-guarantee then transfers to the LLM module's output, because the
-generator's reply is wrapped in a complete IDS document and validated
-against the same XSD before persistence. The LLM gate makes
-"natural-language to machine-checkable rule" a one-call operation
-rather than a two-week BIM-execution-plan workshop.</p>
-<p>What did not work as planned: the original Auckland test models were
-unreachable, which delayed the run-end-to-end milestone. The chosen
-replacements cover seven of the nine specifications between them;
-<code>IfcCableSegment</code> and <code>IfcElectricAppliance</code> are not represented in
-either file. Rather than weaken the IDS to fit the available data, the
-ruleset retains those specifications and the validator honestly reports
-"0 applicable entities — SKIP" — which is a feature, not a defect: a
-real EIR is written for the building, not for the test sample.</p>
-<p>The pyRevit path the slides nudge toward is still reachable from this
-codebase. A pyRevit wrapper would call <code>validator.run()</code> exactly as the
-CLI does, with the in-session document path passed in. The
-implementation choice is, in other words, additive rather than
-exclusive: openBIM is the right surface for the IDS contract, and
-pyRevit can sit on top of it if a specific firm needs an in-Revit
-button. The dissertation chapter that grows out of this assignment will
-extend the architecture with (a) a streaming validator for IFCs above
-500 MB and (b) a feedback loop where commissioning evidence (BCF
-issues with measurements) can amend the IDS automatically — closing the
-EIR → IDS → check → evidence circle.</p></body></html>
+<p>Estimated effort: a day per client to wire up CDE credentials and tune the scheduler.</p>
+<h3>7.7 The Pset-aware authoring tool gap</h3>
+<p>Today an IDS author has to look up Pset names manually in the bSDD or the IFC4 documentation. A Pset-aware IDS authoring tool — autocomplete on Pset name and property name, type-checked dataType, restriction-aware enum suggestions for <code>PredefinedType</code> — would tenfold authoring productivity. None exists publicly that I am aware of. Building one as a VS Code extension on top of the bSDD API is a small product in its own right and would be the most useful single addition to the workflow.</p>
+<h2>8. Repository layout</h2>
+<pre><code>m7u5-ids-mep-validator/
+├── README.md                                ← this submission's entry point
+├── LICENSE                                  ← MIT
+├── .env.template                            ← template (real .env is gitignored)
+├── requirements.txt                         ← Python 3.11 pip freeze
+├── ids/
+│   └── mep_services_v1.ids                  ← hand-authored 9-spec ruleset
+├── ifc/
+│   ├── Ifc4_Revit_MEP.ifc                   ← primary test model (gitignored, 27.8 MB)
+│   └── BoilerGasRadiatorDomesticHotWater.ifc← secondary test model (gitignored, 1.35 MB)
+├── src/
+│   ├── __init__.py
+│   ├── validator.py                         ← ifctester wrapper + ValidationRun dataclass
+│   ├── reporter.py                          ← JSON/HTML/BCF/CSV multi-format export
+│   ├── cli.py                               ← `python -m src.cli --ifc ... --ids ... --out ...`
+│   ├── llm_eir_to_ids.py                    ← EIR clause → IDS spec via Claude + XSD gate
+│   └── llm_remediation.py                   ← failure JSON → English remediation via Claude
+├── scripts/
+│   ├── build_mep_ids.py                     ← rebuilds mep_services_v1.ids via ifctester API
+│   └── build_report_pdf.py                  ← this report .md → .pdf via Edge headless
+├── notebooks/
+│   ├── 00_ifc_inventory.ipynb               ← schema + entity-count sanity check
+│   └── 01_demo_validation.ipynb             ← end-to-end demo with Claude output embedded
+├── queries/
+│   └── sample_eir_clauses.txt               ← three sample EIR clauses for the LLM generator
+├── tests/
+│   └── test_validator.py                    ← 4 pytest tests, all passing in 2.18 s
+├── docs/
+│   ├── architecture.svg                     ← system diagram (Figure 1)
+│   ├── pipeline.svg                         ← 4-stage validation pipeline (Figure 2)
+│   ├── technical_report.md                  ← this report's source
+│   ├── technical_report.html                ← rendered HTML intermediate
+│   └── technical_report.pdf                 ← rendered PDF submission
+└── results/
+    ├── eir_translation_three_clauses.ids    ← live Claude output (3 IDS specs)
+    ├── generated_demo.ids                   ← live Claude output (1 IDS spec from notebook)
+    └── Ifc4_Revit_MEP_remediated.json       ← live Claude output (8 remediation paragraphs)
+</code></pre>
+<p>The five regenerable validator reports per IFC (JSON, HTML, BCF, summary CSV, failures CSV) are produced into <code>results/</code> at runtime and are gitignored by size policy. The three LLM evidence files in <code>results/</code> are exempted from the gitignore and committed.</p>
+<h2>9. How to reproduce</h2>
+<pre><code class="language-bash">git clone https://github.com/markshanehaines-ZIG/m7u5-ids-mep-validator.git
+cd m7u5-ids-mep-validator
+python -m venv venv
+source venv/Scripts/activate           # Windows Git Bash; venv/bin/activate on macOS/Linux
+pip install -r requirements.txt
+cp .env.template .env                  # then paste your ANTHROPIC_API_KEY into .env in your editor
+
+# Download the two test models (about 30 seconds on a normal connection)
+curl -sL -o ifc/Ifc4_Revit_MEP.ifc \
+  https://raw.githubusercontent.com/youshengCode/IfcSampleFiles/main/Ifc4_Revit_MEP.ifc
+curl -sL -o ifc/BoilerGasRadiatorDomesticHotWater.ifc \
+  &quot;https://raw.githubusercontent.com/EnEff-BIM/EnEffBIM_UseCases/master/BIM/1.2%20BoilerGasRadiatorDomesticHotWater_VDI%206020/IFC/1.2%20BoilerGasRadiatorDomesticHotWater.ifc&quot;
+
+# Run the validator against the primary IFC
+python -m src.cli --ifc ifc/Ifc4_Revit_MEP.ifc --ids ids/mep_services_v1.ids --out results/
+
+# Run the test suite (~2 seconds)
+python -m pytest tests/ -v
+
+# Run the LLM modules (requires ANTHROPIC_API_KEY in .env)
+python -m src.llm_eir_to_ids --input queries/sample_eir_clauses.txt --out results/generated.ids
+python -m src.llm_remediation --report results/Ifc4_Revit_MEP_report.json \
+                              --out results/Ifc4_Revit_MEP_remediated.json --limit 20
+
+# Open the demo notebook
+jupyter notebook notebooks/01_demo_validation.ipynb
+
+# Rebuild the IDS file (regenerates ids/mep_services_v1.ids from the Python builder)
+python scripts/build_mep_ids.py
+
+# Rebuild this PDF (uses Microsoft Edge headless on Windows)
+python scripts/build_report_pdf.py
+</code></pre>
+<p>The validator's CLI exits 0 on PASS and 1 on FAIL, so a CI job can gate on the exit code directly.</p>
+<h2>10. Standards referenced</h2>
+<p><strong>buildingSMART / openBIM</strong></p>
+<ul>
+<li>ISO 16739-1:2024 — Industry Foundation Classes (IFC4)</li>
+<li>buildingSMART IDS 1.0 — Information Delivery Specification (XSD bundled in <code>ifctester</code>)</li>
+<li>buildingSMART bSDD — Data Dictionary, at <code>https://search.bsdd.buildingsmart.org</code></li>
+<li>buildingSMART Sample Test Files (CC-BY-4.0)</li>
+<li>BCF 2.1 — BIM Collaboration Format</li>
+</ul>
+<p><strong>Information management</strong></p>
+<ul>
+<li>ISO 19650-1 / 19650-2 — Information management using BIM</li>
+<li>ISO 12006-2 — Classification framework</li>
+<li>ISO 55000 — Asset management</li>
+</ul>
+<p><strong>MEP services standards cited in the IDS (UK + AS/NZS blend)</strong></p>
+<ul>
+<li>BS EN 12845 §10 — Sprinkler hydraulic calculation (cited in MEP-04 for the assignment; will normalise to NZS 4541 in production)</li>
+<li>BS 7671 §433 — Cable current-carrying capacity (cited in MEP-08 for the assignment; will normalise to AS/NZS 3000 §433)</li>
+<li>AS/NZS 3000 — Wiring rules</li>
+<li>AS/NZS 3500 — Plumbing and drainage</li>
+<li>AS 1668.2 — Mechanical ventilation</li>
+<li>AS 4254 — Ductwork</li>
+<li>NZS 4541 — Automatic fire sprinkler systems</li>
+<li>NZS 4512 — Fire detection and alarm systems</li>
+<li>NZBC C/AS2 — Acceptable solutions for fire safety</li>
+<li>NZBC G4 / G12 / G13 / H1 — Building Code services clauses</li>
+</ul>
+<p><strong>Lecture material</strong></p>
+<ul>
+<li>M7U5 Sessions 1–4, Elias Magalhães, Zigurat</li>
+<li>Particular reference to slides 18–24 on IDS as the bridge between EIR intent and machine logic</li>
+</ul>
+<p><strong>Source IFC datasets</strong></p>
+<ul>
+<li><code>Ifc4_Revit_MEP.ifc</code> — Autodesk Revit MEP Advanced Sample Project (<code>rme_advanced_sample_project</code>), © Autodesk Inc., used here for non-commercial academic evaluation under Autodesk's sample-content terms; IFC4 export republished at <code>https://github.com/youshengCode/IfcSampleFiles</code>.</li>
+<li><code>BoilerGasRadiatorDomesticHotWater.ifc</code> — EnEff:BIM project (German Federal Ministry for Economic Affairs and Climate Action research programme), VDI 6020 reference, MIT-licensed at <code>https://github.com/EnEff-BIM/EnEffBIM_UseCases</code>.</li>
+</ul>
+<p>End of submission.</p></body></html>

@@ -30,31 +30,103 @@ EDGE_CANDIDATES = [
 ]
 
 CSS = """
-@page { size: A4; margin: 14mm 16mm 14mm 16mm; }
+@page {
+    size: A4;
+    margin: 22mm 18mm 20mm 18mm;
+    @top-center {
+        content: "MAICEN-1125 M7U5 Individual Assignment | Mark Shane Haines";
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-size: 8pt;
+        color: #555;
+    }
+    @bottom-center {
+        content: "Zigurat Global Institute of Technology   " counter(page);
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-size: 8pt;
+        color: #555;
+    }
+}
+@page :first {
+    margin: 30mm 25mm 25mm 25mm;
+    @top-center { content: ""; }
+    @bottom-center { content: ""; }
+}
+
 html, body {
     font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     color: #111;
-    font-size: 9.8pt;
-    line-height: 1.32;
+    font-size: 10pt;
+    line-height: 1.35;
 }
-h1 { font-size: 16pt; margin: 0 0 4pt 0; }
-h2 { font-size: 11.5pt; margin: 10pt 0 4pt 0; border-bottom: 0.6pt solid #555; padding-bottom: 1pt; }
-h3 { font-size: 10pt; margin: 8pt 0 3pt 0; }
-p  { margin: 0 0 5pt 0; text-align: justify; hyphens: auto; }
-ul, ol { margin: 0 0 5pt 16pt; }
+
+/* Title page styling */
+.title-page {
+    text-align: center;
+    page-break-after: always;
+    padding-top: 30mm;
+}
+.title-page h1 {
+    font-size: 22pt;
+    margin: 20mm 0 6mm 0;
+    border: none;
+    color: #111;
+}
+.title-page h2 { font-size: 14pt; margin: 4mm 0; border: none; color: #333; }
+.title-page h3 { font-size: 12pt; margin: 6mm 0 20mm 0; color: #555; font-weight: normal; }
+.title-page p { text-align: center; margin: 4mm 0; font-size: 11pt; }
+.title-page strong { font-size: 12pt; }
+
+.page-break { page-break-after: always; height: 0; }
+
+h1 { font-size: 18pt; margin: 12pt 0 6pt 0; border-bottom: 1pt solid #333; padding-bottom: 2pt; }
+h2 { font-size: 13pt; margin: 12pt 0 4pt 0; color: #1a1a1a; border-bottom: 0.5pt solid #999; padding-bottom: 1pt; }
+h3 { font-size: 11pt; margin: 10pt 0 3pt 0; color: #1a1a1a; }
+h4 { font-size: 10pt; margin: 6pt 0 2pt 0; color: #1a1a1a; font-weight: 600; }
+
+p  { margin: 0 0 6pt 0; text-align: justify; hyphens: auto; }
+ul, ol { margin: 0 0 6pt 16pt; }
 li { margin-bottom: 2pt; }
-table { border-collapse: collapse; width: 100%; font-size: 8.6pt; margin: 4pt 0 6pt 0; }
-th, td { border: 0.4pt solid #888; padding: 2pt 4pt; text-align: left; }
-th { background: #eef2f7; }
-code, pre {
+blockquote {
+    border-left: 2pt solid #aaa;
+    margin: 4pt 0 6pt 8pt;
+    padding-left: 8pt;
+    color: #333;
+    font-style: italic;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 8.6pt;
+    margin: 4pt 0 8pt 0;
+    page-break-inside: avoid;
+}
+th, td { border: 0.4pt solid #888; padding: 3pt 5pt; text-align: left; vertical-align: top; }
+th { background: #eef2f7; font-weight: 600; }
+
+code {
     font-family: "JetBrains Mono", "Consolas", Menlo, monospace;
     font-size: 8.6pt;
     background: #f4f4f4;
     border-radius: 2pt;
     padding: 0 2pt;
 }
-pre { padding: 4pt 6pt; }
+pre {
+    font-family: "JetBrains Mono", "Consolas", Menlo, monospace;
+    font-size: 8.4pt;
+    background: #f6f6f6;
+    border: 0.3pt solid #ccc;
+    border-radius: 2pt;
+    padding: 5pt 7pt;
+    margin: 4pt 0 6pt 0;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+}
+pre code { background: none; padding: 0; font-size: 8.4pt; }
+
 svg, img { max-width: 100%; height: auto; }
+.svg-wrap { text-align: center; margin: 4pt 0 8pt 0; page-break-inside: avoid; }
 .subtitle { color: #555; font-size: 10pt; margin-top: -2pt; margin-bottom: 6pt; }
 """
 
@@ -104,10 +176,7 @@ def _find_edge() -> Path:
 def build() -> None:
     md_source = MD.read_text(encoding="utf-8")
     front, body_md = _strip_front_matter(md_source)
-    title = front.get("title", "Technical report")
-    subtitle = front.get("subtitle", "")
-    author = front.get("author", "")
-    date = front.get("date", "")
+    title = front.get("title") or "M7U5 Technical Report"
 
     body_html = markdown.markdown(
         body_md,
@@ -115,11 +184,19 @@ def build() -> None:
     )
     body_html = _inline_svgs(body_html)
 
-    header_html = (
-        f'<h1>{title}</h1>'
-        f'<div class="subtitle">{subtitle}</div>'
-        f'<div class="subtitle">{author} &middot; {date}</div>'
-    )
+    # If the markdown begins with its own title-page div, do not prepend an
+    # extra header block; otherwise generate one from the YAML front matter.
+    has_inline_title = '<div class="title-page"' in body_html or 'class="title-page"' in body_html
+    header_html = ""
+    if not has_inline_title:
+        subtitle = front.get("subtitle", "")
+        author = front.get("author", "")
+        date = front.get("date", "")
+        header_html = (
+            f'<h1>{title}</h1>'
+            f'<div class="subtitle">{subtitle}</div>'
+            f'<div class="subtitle">{author} &middot; {date}</div>'
+        )
 
     full_html = f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
