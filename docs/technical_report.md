@@ -12,7 +12,7 @@
 
 Zigurat Global Institute of Technology
 
-**Submission Date: 28 June 2026 (23:59 NZST)**
+**Submission Date: 28 June 2026 (23:59 CEST)**
 
 </div>
 

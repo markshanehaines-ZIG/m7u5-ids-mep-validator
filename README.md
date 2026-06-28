@@ -4,7 +4,7 @@
 **Module:** M7U5 — Development of Plugins for BIM Platforms
 **Lecturer:** Elias Magalhães
 **Author:** Mark Shane Haines (Services BIM Consultant)
-**Submission Date:** 28 June 2026 (23:59 NZST)
+**Submission Date:** 28 June 2026 (23:59 CEST)
 **Status:** Submitted
 
 > Hand-authored Mechanical, Electrical and Plumbing (MEP) information-requirements
