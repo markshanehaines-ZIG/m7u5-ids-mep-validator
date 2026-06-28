@@ -4,7 +4,8 @@
 **Module:** M7U5 — Development of Plugins for BIM Platforms
 **Lecturer:** Elias Magalhães
 **Author:** Mark Shane Haines (Services BIM Consultant)
-**Status:** In development
+**Submission Date:** 28 June 2026 (23:59 NZST)
+**Status:** Submitted
 
 > Hand-authored Mechanical, Electrical and Plumbing (MEP) information-requirements
 > validator built on the buildingSMART openBIM stack
@@ -13,8 +14,8 @@
 > into valid IDS 1.0 specifications and (b) generate plain-English remediation
 > advice for each non-conformance.
 
-This README will be expanded as each phase lands. See `docs/technical_report.md`
-for the full 2-page report.
+See `docs/technical_report.md` (rendered as `docs/technical_report.pdf`) for the
+full technical report.
 
 ---
 
